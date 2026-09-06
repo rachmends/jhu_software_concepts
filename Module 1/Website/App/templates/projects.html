@@ -13,18 +13,18 @@
 <body>
 
     <nav class="navbar">
-        <a href="{{ url_for('home') }}"
-           class="{% if request.endpoint == 'home' %}active{% endif %}">
+        <a href="{{ url_for('main.home') }}"
+           class="{% if request.endpoint == 'main.home' %}active{% endif %}">
             Home
         </a>
 
-        <a href="{{ url_for('contact') }}"
-           class="{% if request.endpoint == 'contact' %}active{% endif %}">
+        <a href="{{ url_for('main.contact') }}"
+           class="{% if request.endpoint == 'main.contact' %}active{% endif %}">
             Contact
         </a>
 
-        <a href="{{ url_for('projects') }}"
-           class="{% if request.endpoint == 'projects' %}active{% endif %}">
+        <a href="{{ url_for('main.projects') }}"
+           class="{% if request.endpoint == 'main.projects' %}active{% endif %}">
             Projects/Publications
         </a>
     </nav>
@@ -38,9 +38,14 @@
             <h2>Module 1 Project</h2>
 
             <p>
-                Describe your Module 1 project here. Explain what you
-                built, the purpose of the project, the technologies
-                you used, and what you learned.
+                This assignment teaches the fundamentals of website construction. I built a personal developer website that includes a biography, contact information/links, and details about my Python projects.
+            </p>
+
+            <p>
+                I worked with Flask, a micro web framework written in Python. I worked with HTML, and then cascading style sheets (CSS) to describe how HTML elements are to be displayed. My output is a functional personal website that includes details about me, my projects, and contact information.
+            </p>
+            <p>
+                Skills: Flask, HTML, Searching Methods, Data Cleaning, JSON Data Object Storage
             </p>
 
             <p>

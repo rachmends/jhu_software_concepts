@@ -14,18 +14,18 @@
 
     <!-- Navigation Bar -->
     <nav class="navbar">
-        <a href="{{ url_for('home') }}"
-           class="{% if request.endpoint == 'home' %}active{% endif %}">
+        <a href="{{ url_for('main.home') }}"
+           class="{% if request.endpoint == 'main.home' %}active{% endif %}">
             Home
         </a>
 
-        <a href="{{ url_for('contact') }}"
-           class="{% if request.endpoint == 'contact' %}active{% endif %}">
+        <a href="{{ url_for('main.contact') }}"
+           class="{% if request.endpoint == 'main.contact' %}active{% endif %}">
             Contact
         </a>
 
-        <a href="{{ url_for('projects') }}"
-           class="{% if request.endpoint == 'projects' %}active{% endif %}">
+        <a href="{{ url_for('main.projects') }}"
+           class="{% if request.endpoint == 'main.projects' %}active{% endif %}">
             Projects
         </a>
     </nav>
@@ -45,7 +45,7 @@
                 <h2>Applied Mathematics MS Student at Johns Hopkins University</h2>
     
                 <p>
-                    Welcome to my Quant Research Space!
+                    Welcome to the darkside!
                 </p>
     
                 <p>

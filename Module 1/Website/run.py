@@ -1,19 +1,12 @@
-from flask import Flask, render_template
+from flask import Flask
+
+from App.routes import main
+
 
 app = Flask(__name__, template_folder='App/templates', static_folder='App/static')
 
-@app.route('/')
+app.register_blueprint(main)
 
-def home():
-    return render_template('base.html')
-
-@app.route('/Contact')
-def contact():
-    return render_template('contact.html')
-
-@app.route('/Projects and Publications')
-def projects():
-    return render_template('projects.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080)
