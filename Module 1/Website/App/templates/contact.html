@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Contact | Rachael Mends</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='main.css') }}">
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <a href="{{ url_for('home') }}"
+           class="{% if request.endpoint == 'home' %}active{% endif %}">
+            Home
+        </a>
+
+        <a href="{{ url_for('contact') }}"
+           class="{% if request.endpoint == 'contact' %}active{% endif %}">
+            Contact
+        </a>
+
+        <a href="{{ url_for('projects') }}"
+           class="{% if request.endpoint == 'projects' %}active{% endif %}">
+            Projects/Publications
+        </a>
+    </nav>
+
+    <main class="home-container">
+
+        <section class="bio">
+
+            <h1>Contact Me</h1>
+
+            <h2>Email</h2>
+            <p>
+                <a href="mailto:your.email@example.com">
+                    rachael.e.mends@gmail.com
+                </a>
+            </p>
+
+            <h2>LinkedIn</h2>
+            <p>
+                <a href="www.linkedin.com/in/rachaelmends" target="_blank">
+                    LinkedIn Profile
+                </a>
+            </p>
+
+        </section>
+
+    </main>
+
+</body>
+</html>

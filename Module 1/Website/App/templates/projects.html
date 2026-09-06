@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Projects/Publications | Rachael Mends</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='main.css') }}">
+</head>
+
+<body>
+
+    <nav class="navbar">
+        <a href="{{ url_for('home') }}"
+           class="{% if request.endpoint == 'home' %}active{% endif %}">
+            Home
+        </a>
+
+        <a href="{{ url_for('contact') }}"
+           class="{% if request.endpoint == 'contact' %}active{% endif %}">
+            Contact
+        </a>
+
+        <a href="{{ url_for('projects') }}"
+           class="{% if request.endpoint == 'projects' %}active{% endif %}">
+            Projects/Publications
+        </a>
+    </nav>
+
+    <main class="home-container">
+
+        <section class="bio">
+
+            <h1>Projects</h1>
+
+            <h2>Module 1 Project</h2>
+
+            <p>
+                Describe your Module 1 project here. Explain what you
+                built, the purpose of the project, the technologies
+                you used, and what you learned.
+            </p>
+
+            <p>
+                This project was developed as part of the JHU Python
+                Software Concepts course.
+            </p>
+
+            <p>
+                <a href="https://github.com/rachmends/jhu_software_concepts" target="_blank">
+                    View the Module 1 Project on GitHub
+                </a>
+            </p>
+
+        </section>
+
+    </main>
+
+</body>
+</html>

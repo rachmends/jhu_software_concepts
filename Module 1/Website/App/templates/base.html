@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Rachael Mends | Home</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='main.css') }}">
+</head>
+
+<body>
+
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <a href="{{ url_for('home') }}"
+           class="{% if request.endpoint == 'home' %}active{% endif %}">
+            Home
+        </a>
+
+        <a href="{{ url_for('contact') }}"
+           class="{% if request.endpoint == 'contact' %}active{% endif %}">
+            Contact
+        </a>
+
+        <a href="{{ url_for('projects') }}"
+           class="{% if request.endpoint == 'projects' %}active{% endif %}">
+            Projects
+        </a>
+    </nav>
+
+
+    <!-- Homepage -->
+    <main class="home-container">
+
+        <!-- Bio on the left -->
+        <section class="bio">
+            <h1>Rachael Mends</h1>
+
+            <h2>Applied Mathematics MS Student at Johns Hopkins University</h2>
+
+            <p>
+                Write your bio here. This section can include information
+                about your academic background, professional experience,
+                research interests, and career goals.
+            </p>
+
+            <p>
+                You can also discuss your transition into software,
+                quantitative finance, applied mathematics, or any other
+                areas that are relevant to your professional interests.
+            </p>
+        </section>
+
+
+        <!-- Image on the right -->
+        <section class="profile">
+            <img src="{{ url_for('static', filename='Images/Profile.jpeg') }}"
+                 alt="Profile picture">
+        </section>
+
+    </main>
+
+</body>
+</html>
