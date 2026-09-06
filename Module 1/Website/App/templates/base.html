@@ -34,30 +34,60 @@
     <!-- Homepage -->
     <main class="home-container">
 
-        <!-- Bio on the left -->
-        <section class="bio">
-            <h1>Rachael Mends</h1>
+        <!-- Top section: bio on the left, image on the right -->
+        <section class="top-section">
 
-            <h2>Applied Mathematics MS Student at Johns Hopkins University</h2>
+            <!-- Bio on the left -->
+            <section class="bio-top">
+    
+                <h1>Rachael Mends</h1>
+    
+                <h2>Applied Mathematics MS Student at Johns Hopkins University</h2>
+    
+                <p>
+                    Welcome to my Quant Research Space!
+                </p>
+    
+                <p>
+                    Here we like to have a little fun (mathematical fun that is).
+                </p>
+    
+                <p>
+                    I earned my bachelor's degree in chemical engineering from Cornell University! Go Big Red!
+                </p>
 
-            <p>
-                Write your bio here. This section can include information
-                about your academic background, professional experience,
-                research interests, and career goals.
-            </p>
+            </section>
+    
 
-            <p>
-                You can also discuss your transition into software,
-                quantitative finance, applied mathematics, or any other
-                areas that are relevant to your professional interests.
-            </p>
+
+            <!-- Image on the right -->
+            <section class="profile">
+                <img src="{{ url_for('static', filename='Images/Profile.jpeg') }}"
+                     alt="Profile picture">
+            </section>
+
         </section>
 
 
-        <!-- Image on the right -->
-        <section class="profile">
-            <img src="{{ url_for('static', filename='Images/Profile.jpeg') }}"
-                 alt="Profile picture">
+        <!-- Remaining bio underneath the image -->
+        <section class="bio-bottom">
+
+            <p>
+                Whilst at Cornell, I worked as an undergraduate researcher in Professor Brett P. Fors’ laboratory at Cornell University. My research initially focused on reversible addition–fragmentation chain-transfer (RAFT) polymerizations, where I gained experience with polymer synthesis and characterization. I later worked on nanoscale polymerizations on silicon wafers, exploring polymer growth and surface-based materials synthesis.
+            </p>
+    
+            <p>
+                I have extensive internship experience in pharmaceuticals (Merck) and energy (Duracell). I worked in polymer manufacturing at ExxonMobil for approximately two years following my undergraduate graduation. During this venture into chemical engineering fieldwork, I grew more attached to data analysis than the process/physical mechanic configurations of manufacturing (reactors, heat exchangers, compressors, extrusion panels, etc.).
+            </p>
+    
+            <p>
+                As a result, for my graduate coursework and desire to pivot into a more data analytical role, I am seeking an advanced degree in applied mathematics from Johns Hopkins University.
+            </p>
+    
+            <p>
+                My primary academic interest is therefore differential equations and mathematical modeling, particularly in applications to physical and quantum chemistry, physics and astrophysics, electromagnetism, and optics and light-wave propagation. I am interested in starting with a physical phenomenon or problem, determining how its relevant principles can be expressed mathematically, and developing differential-equation-based models that can describe its behavior, reveal underlying mechanisms, or help identify ways of addressing the problem.
+            </p>
+
         </section>
 
     </main>

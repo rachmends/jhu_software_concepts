@@ -3,7 +3,7 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
+    background-color: #b4d4f7;
     color: #222;
 }
 
@@ -45,33 +45,39 @@ body {
 /* Homepage layout */
 
 .home-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-
     max-width: 1100px;
     margin: 80px auto;
     padding: 40px;
 }
 
 
+/* Top section: bio on the left, image on the right */
+
+.top-section {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+
 /* Bio on the left */
 
-.bio {
+.bio-top {
     width: 55%;
 }
 
-.bio h1 {
+.bio-top h1 {
     font-size: 48px;
     margin-bottom: 10px;
 }
 
-.bio h2 {
+.bio-top h2 {
     font-size: 28px;
     margin-bottom: 25px;
 }
 
-.bio p {
+.bio-top p,
+.bio-bottom p {
     font-size: 18px;
     line-height: 1.6;
 }
@@ -82,12 +88,20 @@ body {
 .profile {
     width: 35%;
     text-align: center;
+    margin-top: 30px;
 }
 
 .profile img {
     width: 300px;
     height: 300px;
-
     object-fit: cover;
     border-radius: 50%;
+}
+
+
+/* Remaining bio underneath the image */
+
+.bio-bottom {
+    width: 100%;
+    margin-top: 20px;
 }
