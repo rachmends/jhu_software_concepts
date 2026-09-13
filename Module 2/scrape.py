@@ -22,7 +22,7 @@ HTML_FILE = Path("gradcafe_page.html")
 STATE_FILE = Path("scrape_state.json")
 
 # Keep runs small while validating pagination/resume behavior.
-MAX_PAGES_PER_RUN = 5
+MAX_PAGES_PER_RUN = 500
 
 http = urllib3.PoolManager()
 
@@ -952,7 +952,7 @@ def scrape_data():
 
     if browser_url != current_url:
         _navigate_gradcafe_tab(current_url)
-        time.sleep(5)
+        time.sleep(12)
 
     print(f"Starting records: {start_count:,}")
     if saved_url:
@@ -1025,7 +1025,7 @@ def scrape_data():
 
         _navigate_gradcafe_tab(next_url)
         current_url = next_url
-        time.sleep(5)
+        time.sleep(12)
 
     print(
         f"Finished: {len(all_records):,}/{TARGET_RECORDS:,} records "
