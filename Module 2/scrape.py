@@ -22,7 +22,7 @@ HTML_FILE = Path("gradcafe_page.html")
 STATE_FILE = Path("scrape_state.json")
 
 # Keep runs small while validating pagination/resume behavior.
-MAX_PAGES_PER_RUN = 100
+MAX_PAGES_PER_RUN = 5
 
 http = urllib3.PoolManager()
 
@@ -451,13 +451,12 @@ def parse_page(html):
     """
     Parse applicant records from one GradCafe page.
 
-    GradCafe uses two consecutive <tr> elements for one
-    applicant:
+    Each applicant consists of:
+        1. Main row
+        2. Detail row
+        3. Optional comment row
 
-        first row  -> university/program/date/status
-        second row -> term/student type/GRE/GPA/etc.
-
-    The second row has class "tw-border-none".
+    Detail/comment rows use class "tw-border-none".
     """
 
     soup = BeautifulSoup(
@@ -466,7 +465,6 @@ def parse_page(html):
     )
 
     records = []
-
     rows = soup.find_all("tr")
 
     i = 0
@@ -480,7 +478,7 @@ def parse_page(html):
             []
         )
 
-        # Detail rows are processed with the preceding row.
+        # Never start a record from a detail/comment row.
         if "tw-border-none" in classes:
             i += 1
             continue
@@ -490,45 +488,88 @@ def parse_page(html):
             strip=True
         )
 
-        detail_text = ""
-
         # ----------------------------------------------------
-        # Combine the applicant's second HTML row
+        # Collect detail rows + optional comment row
         # ----------------------------------------------------
 
-        if i + 1 < len(rows):
+        detail_text_parts = []
+        comment_texts = []
 
-            next_row = rows[i + 1]
+        j = i + 1
 
-            next_classes = next_row.get(
+        while j < len(rows):
+
+            extra_row = rows[j]
+
+            extra_classes = extra_row.get(
                 "class",
                 []
             )
 
-            if "tw-border-none" in next_classes:
+            if "tw-border-none" not in extra_classes:
+                break
 
-                detail_text = next_row.get_text(
+            # Comment rows contain this <p>
+            comment_element = extra_row.select_one(
+                "p.tw-text-gray-500.tw-text-sm.tw-my-0"
+            )
+
+            if comment_element:
+
+                comment_text = comment_element.get_text(
                     " ",
                     strip=True
                 )
 
-                i += 1
+                if comment_text:
+                    comment_texts.append(
+                        comment_text
+                    )
+
+            else:
+
+                extra_text = extra_row.get_text(
+                    " ",
+                    strip=True
+                )
+
+                if extra_text:
+                    detail_text_parts.append(
+                        extra_text
+                    )
+
+            j += 1
+
+        detail_text = " ".join(
+            detail_text_parts
+        )
+
+        comments = None
+
+        if comment_texts:
+            comments = " ".join(
+                comment_texts
+            )
 
         combined_text = (
             main_text + " " + detail_text
         ).strip()
 
+        # ----------------------------------------------------
+        # Status
+        # ----------------------------------------------------
+
         status = extract_status(
             combined_text
         )
 
-        # Ignore table headers and unrelated rows.
+        # Header/unrelated row.
         if status is None:
-            i += 1
+            i = j
             continue
 
         # ----------------------------------------------------
-        # Extract individual table cells
+        # Main table cells
         # ----------------------------------------------------
 
         cells = [
@@ -559,8 +600,6 @@ def parse_page(html):
             combined_text
         )
 
-        # If degree is attached to the program name,
-        # remove it from the program field.
         if program and degree:
 
             program = re.sub(
@@ -571,63 +610,32 @@ def parse_page(html):
             ).strip()
 
         # ----------------------------------------------------
-        # URL
+        # Applicant URL
         # ----------------------------------------------------
 
         applicant_url = None
 
-        links = row.find_all(
+        for link in row.find_all(
             "a",
             href=True
-        )
-
-        for link in links:
+        ):
 
             href = link.get(
                 "href",
                 ""
             )
 
-            # Prefer an individual result URL if available.
             if "/result/" in href:
 
                 if href.startswith("http"):
                     applicant_url = href
-
                 else:
-                    applicant_url = (
-                        BASE_URL + href
-                    )
+                    applicant_url = BASE_URL + href
 
                 break
 
         # ----------------------------------------------------
-        # Comments
-        # ----------------------------------------------------
-
-        comments = None
-
-        # We keep comments None unless actual comment text
-        # is present. Do not use "Total comments" as content.
-        comment_elements = row.find_all(
-            attrs={"data-comment": True}
-        )
-
-        if comment_elements:
-
-            comments = " ".join(
-                element.get_text(
-                    " ",
-                    strip=True
-                )
-                for element in comment_elements
-            )
-
-            if not comments:
-                comments = None
-
-        # ----------------------------------------------------
-        # Create final record
+        # Final record
         # ----------------------------------------------------
 
         record = {
@@ -661,9 +669,16 @@ def parse_page(html):
                 detail_text
             ),
             "degree": degree,
-
-            # Original scraped text retained for traceability.
-            "raw_text": combined_text,
+            "raw_text": (
+                main_text
+                + " "
+                + detail_text
+                + (
+                    " " + comments
+                    if comments
+                    else ""
+                )
+            ).strip(),
             "raw_main_text": main_text,
             "raw_detail_text": detail_text
         }
@@ -672,10 +687,10 @@ def parse_page(html):
             record
         )
 
-        i += 1
+        # Jump directly to the next applicant row.
+        i = j
 
     return records
-
 
 # ============================================================
 # JSON FUNCTIONS
@@ -869,6 +884,45 @@ def inspect_page(html):
         "=====================================\n"
     )
 
+def merge_records(existing_records, new_records):
+    """
+    Merge records using the applicant URL.
+
+    Existing records are preserved, but new non-null comment
+    values can fill in fields that were previously missing.
+    
+    Added because I realized my first 2k data did not pull comments from GradCafe during my first few scrapes
+    
+    This block in def main() was edited to call upon def merge_records() when rescraping was done:
+    
+    before = len(all_records)
+        all_records.extend(page_records)
+        all_records = deduplicate_records(all_records)
+        added = len(all_records) - before
+    
+    """
+
+    records_by_key = {}
+
+    for record in existing_records:
+        key = record_key(record)
+        records_by_key[key] = record
+
+    for new_record in new_records:
+        key = record_key(new_record)
+
+        if key not in records_by_key:
+            records_by_key[key] = new_record
+            continue
+
+        old_record = records_by_key[key]
+
+        for field, new_value in new_record.items():
+
+            if new_value not in (None, "", []):
+                old_record[field] = new_value
+
+    return list(records_by_key.values())
 
 # ============================================================
 # MAIN PROGRAM
