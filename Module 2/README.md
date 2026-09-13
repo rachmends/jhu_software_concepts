@@ -490,7 +490,7 @@ print(
     )
 )
 
-bad_gpa = []
+nonstandard_gpa = []
 
 for record in data:
     gpa = record.get("gpa")
@@ -500,12 +500,15 @@ for record in data:
             value = float(gpa)
 
             if value < 0 or value > 4.0:
-                bad_gpa.append(record)
+                nonstandard_gpa.append(record)
 
         except (TypeError, ValueError):
-            bad_gpa.append(record)
+            nonstandard_gpa.append(record)
 
-print("\nBAD GPA VALUES:", len(bad_gpa))
+print(
+    "\nNON-4.0-SCALE GPA VALUES:",
+    len(nonstandard_gpa)
+)
 
 print(
     "MISSING RAW TEXT:",
@@ -518,12 +521,20 @@ PY
 ```
 
 A successful validation should confirm that the dataset contains unique
-applicant URLs, all required JSON keys are present, raw source text is retained
-for traceability, and numeric GPA values fall within the expected range.
+applicant URLs, all required JSON keys are present, and raw source text is
+retained for traceability. Numeric GPA values outside the conventional
+0.0–4.0 range are flagged for inspection rather than automatically treated
+as errors.
 
-Missing values for optional applicant-submitted fields such as GRE scores or
-comments may occur when the original GradCafe record does not provide those
-values.
+The validation identified GPA values outside the conventional 0.0–4.0
+range, ranging from 4.03 to 4.95. Because GradCafe contains user-submitted
+data, applicants may report GPAs using weighted or alternative grading
+scales. These values were therefore preserved as reported rather than
+modified or discarded.
+
+Missing values for optional applicant-submitted fields such as GRE scores,
+GPA, student type, degree, or comments may occur when the original GradCafe
+record does not provide those values.
 
 ## Final Cleaned-Data Validation
 
