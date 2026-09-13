@@ -30,7 +30,7 @@ http = urllib3.PoolManager()
 # URLLIB3 TEST
 # ============================================================
 
-def test_urllib3(url):
+def _test_urllib3(url):
     """
     Test whether GradCafe allows a direct urllib3 request.
 
@@ -60,7 +60,7 @@ def test_urllib3(url):
 # CHROME FUNCTIONS
 # ============================================================
 
-def get_gradcafe_tab_info():
+def _get_gradcafe_tab_info():
     """
     Find the GradCafe survey tab and return its title and URL.
     """
@@ -87,7 +87,7 @@ def get_gradcafe_tab_info():
     return result.stdout.strip()
 
 
-def get_chrome_html():
+def _get_chrome_html():
     """
     Capture the rendered HTML specifically from the
     GradCafe survey/results tab.
@@ -115,7 +115,7 @@ def get_chrome_html():
     return result.stdout
 
 
-def navigate_gradcafe_tab(url):
+def _navigate_gradcafe_tab(url):
     """
     Navigate the existing GradCafe survey tab to another page.
     """
@@ -149,7 +149,7 @@ def navigate_gradcafe_tab(url):
 # HTML FUNCTIONS
 # ============================================================
 
-def save_html(html):
+def _save_html(html):
     """
     Save the most recently captured HTML for debugging.
     """
@@ -160,7 +160,7 @@ def save_html(html):
     )
 
 
-def is_blocked(html):
+def _is_blocked(html):
     """
     Detect an actual blocking/verification page.
 
@@ -216,7 +216,7 @@ def is_blocked(html):
 
     return False
 
-def get_next_page_url(html):
+def _get_next_page_url(html):
     """
     Find GradCafe's actual next-page URL from the rendered HTML.
     """
@@ -265,7 +265,7 @@ def get_next_page_url(html):
 # PARSING HELPERS
 # ============================================================
 
-def extract_degree(text):
+def _extract_degree(text):
     """
     Extract degree type.
     """
@@ -283,7 +283,7 @@ def extract_degree(text):
     return None
 
 
-def extract_date_added(text):
+def _extract_date_added(text):
     """
     Extract date such as Sep 12, 2026.
     """
@@ -300,7 +300,7 @@ def extract_date_added(text):
     return None
 
 
-def extract_status(text):
+def _extract_status(text):
     """
     Extract applicant decision status.
     """
@@ -322,7 +322,7 @@ def extract_status(text):
     return None
 
 
-def extract_decision_date(text):
+def _extract_decision_date(text):
     """
     Extract decision date such as Sep 11.
     """
@@ -342,7 +342,7 @@ def extract_decision_date(text):
     return None
 
 
-def extract_term(text):
+def _extract_term(text):
     """
     Extract semester/year such as Spring 2027.
     """
@@ -359,7 +359,7 @@ def extract_term(text):
     return None
 
 
-def extract_student_type(text):
+def _extract_student_type(text):
     """
     Determine International or American.
     """
@@ -375,7 +375,7 @@ def extract_student_type(text):
     return None
 
 
-def extract_gpa(text):
+def _extract_gpa(text):
     """
     Extract GPA.
     """
@@ -392,7 +392,7 @@ def extract_gpa(text):
     return None
 
 
-def extract_gre(text):
+def _extract_gre(text):
     """
     Extract GRE quantitative/general score shown as GRE.
     """
@@ -409,7 +409,7 @@ def extract_gre(text):
     return None
 
 
-def extract_gre_v(text):
+def _extract_gre_v(text):
     """
     Extract GRE verbal score.
     """
@@ -426,7 +426,7 @@ def extract_gre_v(text):
     return None
 
 
-def extract_gre_aw(text):
+def _extract_gre_aw(text):
     """
     Extract GRE analytical-writing score.
     """
@@ -447,7 +447,7 @@ def extract_gre_aw(text):
 # PAGE PARSER
 # ============================================================
 
-def parse_page(html):
+def _parse_page(html):
     """
     Parse applicant records from one GradCafe page.
 
@@ -559,7 +559,7 @@ def parse_page(html):
         # Status
         # ----------------------------------------------------
 
-        status = extract_status(
+        status = _extract_status(
             combined_text
         )
 
@@ -596,7 +596,7 @@ def parse_page(html):
         # Degree
         # ----------------------------------------------------
 
-        degree = extract_degree(
+        degree = _extract_degree(
             combined_text
         )
 
@@ -642,30 +642,30 @@ def parse_page(html):
             "program": program,
             "university": university,
             "comments": comments,
-            "date_added": extract_date_added(
+            "date_added": _extract_date_added(
                 main_text
             ),
             "url": applicant_url,
             "status": status,
-            "decision_date": extract_decision_date(
+            "decision_date": _extract_decision_date(
                 combined_text
             ),
-            "term": extract_term(
+            "term": _extract_term(
                 detail_text
             ),
-            "student_type": extract_student_type(
+            "student_type": _extract_student_type(
                 detail_text
             ),
-            "gre": extract_gre(
+            "gre": _extract_gre(
                 detail_text
             ),
-            "gre_v": extract_gre_v(
+            "gre_v": _extract_gre_v(
                 detail_text
             ),
-            "gre_aw": extract_gre_aw(
+            "gre_aw": _extract_gre_aw(
                 detail_text
             ),
-            "gpa": extract_gpa(
+            "gpa": _extract_gpa(
                 detail_text
             ),
             "degree": degree,
@@ -753,7 +753,7 @@ def save_data(records):
 # RESUME STATE
 # ============================================================
 
-def load_state():
+def _load_state():
     """Load the saved next-page URL, if one exists."""
     if not STATE_FILE.exists() or STATE_FILE.stat().st_size == 0:
         return {}
@@ -766,7 +766,7 @@ def load_state():
         return {}
 
 
-def save_state(next_url, record_count):
+def _save_state(next_url, record_count):
     """Save enough information to resume after the current page."""
     state = {
         "next_url": next_url,
@@ -781,7 +781,7 @@ def save_state(next_url, record_count):
 # DUPLICATE HANDLING
 # ============================================================
 
-def record_key(record):
+def _record_key(record):
     """
     Create a stable key used to identify duplicate records.
 
@@ -812,7 +812,7 @@ def record_key(record):
     )
 
 
-def deduplicate_records(records):
+def _deduplicate_records(records):
     """
     Remove duplicate applicants.
     """
@@ -823,7 +823,7 @@ def deduplicate_records(records):
 
     for record in records:
 
-        key = record_key(
+        key = _record_key(
             record
         )
 
@@ -845,7 +845,7 @@ def deduplicate_records(records):
 # DEBUG OUTPUT
 # ============================================================
 
-def inspect_page(html):
+def _inspect_page(html):
     """
     Print useful information about the captured page.
     """
@@ -884,7 +884,7 @@ def inspect_page(html):
         "=====================================\n"
     )
 
-def merge_records(existing_records, new_records):
+def _merge_records(existing_records, new_records):
     """
     Merge records using the applicant URL.
 
@@ -893,11 +893,11 @@ def merge_records(existing_records, new_records):
     
     Added because I realized my first 2k data did not pull comments from GradCafe during my first few scrapes
     
-    This block in def main() was edited to call upon def merge_records() when rescraping was done:
+    This block in def main() was edited to call upon def _merge_records() when rescraping was done:
     
     before = len(all_records)
         all_records.extend(page_records)
-        all_records = deduplicate_records(all_records)
+        all_records = _deduplicate_records(all_records)
         added = len(all_records) - before
     
     """
@@ -905,11 +905,11 @@ def merge_records(existing_records, new_records):
     records_by_key = {}
 
     for record in existing_records:
-        key = record_key(record)
+        key = _record_key(record)
         records_by_key[key] = record
 
     for new_record in new_records:
-        key = record_key(new_record)
+        key = _record_key(new_record)
 
         if key not in records_by_key:
             records_by_key[key] = new_record
@@ -928,21 +928,21 @@ def merge_records(existing_records, new_records):
 # MAIN PROGRAM
 # ============================================================
 
-def main():
-    all_records = deduplicate_records(load_data())
+def scrape_data():
+    all_records = _deduplicate_records(load_data())
     start_count = len(all_records)
 
-    tab_info = get_gradcafe_tab_info()
+    tab_info = _get_gradcafe_tab_info()
     if not tab_info:
         print(f"Open {RESULTS_URL} in normal Google Chrome, then rerun.")
         return
 
     # Keep the urllib3 check required by the assignment, but do not
     # attempt to bypass a 403 response.
-    status = test_urllib3(RESULTS_URL)
+    status = _test_urllib3(RESULTS_URL)
     print(f"urllib3 status: {status}")
 
-    state = load_state()
+    state = _load_state()
     saved_url = state.get("next_url")
     browser_url = tab_info.rsplit(" | ", 1)[-1].strip()
 
@@ -951,7 +951,7 @@ def main():
     current_url = saved_url or browser_url or RESULTS_URL
 
     if browser_url != current_url:
-        navigate_gradcafe_tab(current_url)
+        _navigate_gradcafe_tab(current_url)
         time.sleep(5)
 
     print(f"Starting records: {start_count:,}")
@@ -967,36 +967,36 @@ def main():
         ):
             break
 
-        html = get_chrome_html()
+        html = _get_chrome_html()
         if not html:
             print("No HTML was captured. Stopping.")
             break
 
-        save_html(html)
+        _save_html(html)
 
-        if is_blocked(html):
+        if _is_blocked(html):
             print(
                 "GradCafe is showing a verification/blocking page. "
                 "Complete it manually in Chrome, then rerun."
             )
             break
 
-        page_records = parse_page(html)
+        page_records = _parse_page(html)
         if not page_records:
             print("No applicant records found. Stopping.")
             break
 
         before = len(all_records)
         all_records.extend(page_records)
-        all_records = deduplicate_records(all_records)
+        all_records = _deduplicate_records(all_records)
         added = len(all_records) - before
 
         save_data(all_records)
 
         # Capture the site's actual cursor-based next page and save it
         # immediately so an interrupted run can resume here.
-        next_url = get_next_page_url(html)
-        save_state(next_url, len(all_records))
+        next_url = _get_next_page_url(html)
+        _save_state(next_url, len(all_records))
 
         pages_processed += 1
         print(
@@ -1023,7 +1023,7 @@ def main():
         ):
             break
 
-        navigate_gradcafe_tab(next_url)
+        _navigate_gradcafe_tab(next_url)
         current_url = next_url
         time.sleep(5)
 
@@ -1032,6 +1032,11 @@ def main():
         f"({len(all_records) - start_count:+,} this run)."
     )
     print(f"Data: {OUTPUT_FILE} | Resume state: {STATE_FILE}")
+
+
+def main():
+    """Run the GradCafe scraper."""
+    scrape_data()
 
 
 if __name__ == "__main__":
