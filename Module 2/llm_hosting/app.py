@@ -274,7 +274,10 @@ def standardize() -> Any:
 
     out: List[Dict[str, Any]] = []
     for row in rows:
-        program_text = (row or {}).get("program") or ""
+        program = (row or {}).get("program") or ""
+        university = (row or {}).get("university") or ""
+        
+        program_text = f"{program}, {university}".strip(", ")
         result = _call_llm(program_text)
         row["llm-generated-program"] = result["standardized_program"]
         row["llm-generated-university"] = result["standardized_university"]
@@ -303,7 +306,10 @@ def _cli_process_file(
 
     try:
         for row in rows:
-            program_text = (row or {}).get("program") or ""
+            program = (row or {}).get("program") or ""
+            university = (row or {}).get("university") or ""
+
+            program_text = f"{program}, {university}".strip(", ")
             result = _call_llm(program_text)
             row["llm-generated-program"] = result["standardized_program"]
             row["llm-generated-university"] = result["standardized_university"]
