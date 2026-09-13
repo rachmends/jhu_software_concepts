@@ -530,6 +530,61 @@ def clean_data(
     )
 
     total = len(data)
+    
+    already_cleaned = []
+
+    if OUTPUT_FILE.exists():
+
+        already_cleaned = load_data(
+            OUTPUT_FILE
+        )
+
+        completed_count = len(
+            already_cleaned
+        )
+
+    else:
+
+        completed_count = 0
+
+
+    if completed_count > total:
+
+        raise ValueError(
+            "Cleaned output contains more records "
+            "than applicant_data.json."
+        )
+
+
+    # Make sure the previously cleaned data still corresponds
+    # to the beginning of the current scraped dataset.
+    for index in range(completed_count):
+
+        raw_url = data[index].get("url")
+
+        cleaned_url = already_cleaned[index].get("url")
+
+        if raw_url != cleaned_url:
+
+            raise ValueError(
+                f"Existing cleaned data does not match "
+                f"applicant_data.json at record {index + 1}."
+            )
+
+
+    remaining_data = data[
+        completed_count:
+    ]
+    
+    print(
+    f"Already cleaned: "
+    f"{completed_count:,}/{total:,}"
+    )
+
+    print(
+        f"Remaining: "
+        f"{len(remaining_data):,}"
+    )
 
     if total == 0:
 
@@ -565,13 +620,13 @@ def clean_data(
     )
 
     _prepare_workspace(
-        data,
+        remaining_data,
         workers,
         reset=reset
     )
 
     jobs = _build_jobs(
-        data,
+        remaining_data,
         workers
     )
 
@@ -593,6 +648,14 @@ def clean_data(
             f"({percent:.1f}%)"
         )
 
+    if completed_count == total:
+
+        print(
+            "All records are already cleaned."
+        )
+
+        return already_cleaned
+    
     print("\nRunning local LLM...")
 
     with ThreadPoolExecutor(
@@ -666,8 +729,13 @@ def clean_data(
                     f"({message})"
                 )
 
-            completed = _completed_record_count(
+            newly_completed = _completed_record_count(
                 jobs
+            )
+
+            completed = (
+                completed_count
+                + newly_completed
             )
 
             percent = (
@@ -685,8 +753,13 @@ def clean_data(
 
     print("\nLoading LLM output...")
 
-    rows = _merge_chunks(
+    new_rows = _merge_chunks(
         jobs
+    )
+
+    rows = (
+        already_cleaned
+        + new_rows
     )
 
     if len(rows) != total:
