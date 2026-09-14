@@ -1,6 +1,6 @@
 {
   "input_file": "/Users/rachrachmendmends/Desktop/JHU Python/jhu_software_concepts/Module 2/applicant_data.json",
-  "input_sha256": "f00276345ea484e25879ecf72762577e2d729058032a118e9a6c2411b6eaf51f",
-  "record_count": 100,
+  "input_sha256": "c07059190afbeb219e9edc03323bd7038942a321a616e631dc5bda594997f471",
+  "record_count": 26700,
   "workers": 2
 }
