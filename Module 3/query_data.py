@@ -293,6 +293,57 @@ def main():
             print(f"Difference: {difference:+d}")
             print()
 
+            # ---------------------------------------------------------
+            # Question 10
+            # Among Princeton University Fall 2026 entries,
+            # what percentage are acceptances?
+            # ---------------------------------------------------------
+
+            cursor.execute("""
+                SELECT
+                    100.0 *
+                    COUNT(*) FILTER (
+                        WHERE LOWER(TRIM(status)) LIKE 'accept%'
+                    )
+                    /
+                    NULLIF(COUNT(*), 0)
+                FROM applicants
+                WHERE LOWER(TRIM(term)) = 'fall 2026'
+                AND LOWER(program) LIKE '%princeton%';
+            """)
+
+            q10 = cursor.fetchone()[0]
+
+            print("Question 10")
+            print(
+                "Princeton Fall 2026 acceptance percentage: "
+                f"{q10:.2f}%"
+            )
+            print()
+            
+            # ---------------------------------------------------------
+            # Question 11
+            # Average GPA of accepted Princeton University
+            # Fall 2026 applicants who reported a GPA.
+            # ---------------------------------------------------------
+
+            cursor.execute("""
+                SELECT AVG(gpa)
+                FROM applicants
+                WHERE LOWER(TRIM(term)) = 'fall 2026'
+                AND LOWER(program) LIKE '%princeton%'
+                AND LOWER(TRIM(status)) LIKE 'accept%'
+                AND gpa IS NOT NULL;
+            """)
+
+            q11 = cursor.fetchone()[0]
+
+            print("Question 11")
+            print(
+                "Average GPA of accepted Princeton Fall 2026 applicants: "
+                f"{q11:.2f}"
+            )
+            print()
 
 if __name__ == "__main__":
     main()
