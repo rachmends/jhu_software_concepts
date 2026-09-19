@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GradCafe Applicant Analysis</title>
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+</head>
+
+<body>
+
+    <header>
+        <h1>GradCafe Applicant Analysis</h1>
+        <p>
+            Analysis of 50,000 self-reported graduate
+            application records
+        </p>
+    </header>
+
+    <main>
+
+        <section>
+            <h2>Required Analysis</h2>
+
+            <div class="results-grid">
+
+                <article class="card">
+                    <h3>Question 1</h3>
+                    <p>How many entries are for Fall 2026?</p>
+                    <strong>{{ "{:,}".format(results.q1) }}</strong>
+                </article>
+
+                <article class="card">
+                    <h3>Question 2</h3>
+                    <p>
+                        What percentage of applicants with a usable
+                        nationality classification are international?
+                    </p>
+                    <strong>{{ "%.2f"|format(results.q2) }}%</strong>
+                </article>
+
+                <article class="card">
+                    <h3>Question 3</h3>
+                    <p>What are the average GPA and GRE scores?</p>
+
+                    <ul>
+                        <li>
+                            GPA:
+                            {{ "%.2f"|format(results.q3_gpa) }}
+                        </li>
+                        <li>
+                            GRE Quantitative:
+                            {{ "%.2f"|format(results.q3_gre) }}
+                        </li>
+                        <li>
+                            GRE Verbal:
+                            {{ "%.2f"|format(results.q3_gre_v) }}
+                        </li>
+                        <li>
+                            GRE Analytical Writing:
+                            {{ "%.2f"|format(results.q3_gre_aw) }}
+                        </li>
+                    </ul>
+                </article>
+
+                <article class="card">
+                    <h3>Question 4</h3>
+                    <p>
+                        What is the average GPA of American
+                        Fall 2026 applicants?
+                    </p>
+                    <strong>{{ "%.2f"|format(results.q4) }}</strong>
+                </article>
+
+                <article class="card">
+                    <h3>Question 5</h3>
+                    <p>
+                        What percentage of Fall 2025 entries
+                        are acceptances?
+                    </p>
+                    <strong>{{ "%.2f"|format(results.q5) }}%</strong>
+                </article>
+
+                <article class="card">
+                    <h3>Question 6</h3>
+                    <p>
+                        What is the average GPA of accepted
+                        Fall 2026 applicants?
+                    </p>
+                    <strong>{{ "%.2f"|format(results.q6) }}</strong>
+                </article>
+
+                <article class="card">
+                    <h3>Question 7</h3>
+                    <p>
+                        How many Johns Hopkins master's-level
+                        Computer Science entries are present?
+                    </p>
+                    <strong>{{ results.q7 }}</strong>
+                </article>
+
+                <article class="card">
+                    <h3>Question 8</h3>
+                    <p>
+                        Accepted Fall 2026 Computer Science PhD
+                        entries at Georgetown, MIT, Stanford,
+                        or Carnegie Mellon using original fields.
+                    </p>
+                    <strong>{{ results.q8 }}</strong>
+                </article>
+
+                <article class="card">
+                    <h3>Question 9</h3>
+                    <p>
+                        How does the LLM-generated field count
+                        compare with the original-field count?
+                    </p>
+
+                    <ul>
+                        <li>Original: {{ results.q8 }}</li>
+                        <li>LLM-generated: {{ results.q9 }}</li>
+                        <li>
+                            Difference:
+                            {{ "%+d"|format(results.q9_difference) }}
+                        </li>
+                    </ul>
+                </article>
+
+            </div>
+        </section>
+
+
+        <section>
+            <h2>Original Questions</h2>
+
+            <div class="results-grid">
+
+                <article class="card">
+                    <h3>Question 10</h3>
+                    <p>
+                        Among Princeton University Fall 2026
+                        entries, what percentage are acceptances?
+                    </p>
+                    <strong>{{ "%.2f"|format(results.q10) }}%</strong>
+                </article>
+
+                <article class="card">
+                    <h3>Question 11</h3>
+                    <p>
+                        What is the average GPA of accepted
+                        Princeton University Fall 2026 applicants
+                        who reported a GPA?
+                    </p>
+                    <strong>{{ "%.2f"|format(results.q11) }}</strong>
+                </article>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>
+            Results are based on self-reported GradCafe data
+            contained in the PostgreSQL database.
+        </p>
+    </footer>
+
+</body>
+</html>
