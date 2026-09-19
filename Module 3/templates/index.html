@@ -21,6 +21,48 @@
     </header>
 
     <main>
+        <section class="data-controls">
+
+            <h2>Data Management</h2>
+        
+            <div class="control-card">
+        
+                <h3>Pull New GradCafe Data</h3>
+        
+                <p>
+                    Pull Data checks GradCafe for newly submitted
+                    application results and adds new usable records
+                    to the PostgreSQL database. Existing records are
+                    preserved and are not duplicated. Depending on
+                    the amount of new data available, this process
+                    may take some time.
+                </p>
+        
+                <form
+                    action="{{ url_for('pull_data') }}"
+                    method="POST"
+                >
+                    <button
+                        type="submit"
+                        class="button"
+                        {% if pull_status.running %}disabled{% endif %}
+                    >
+                        {% if pull_status.running %}
+                            Pulling Data...
+                        {% else %}
+                            Pull Data
+                        {% endif %}
+                    </button>
+                </form>
+        
+                <p class="status">
+                    <strong>Status:</strong>
+                    {{ pull_status.message }}
+                </p>
+        
+            </div>
+        
+        </section>
 
         <section>
             <h2>Required Analysis</h2>
@@ -168,6 +210,14 @@
             contained in the PostgreSQL database.
         </p>
     </footer>
+
+    {% if pull_status.running %}
+    <script>
+        setTimeout(function () {
+            window.location.reload();
+        }, 5000);
+    </script>
+    {% endif %}
 
 </body>
 </html>

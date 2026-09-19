@@ -1,10 +1,23 @@
-from flask import Flask, render_template
+import os
+import subprocess
+import threading
+import sys
+
+from flask import Flask, render_template, redirect, url_for
 from sqlalchemy import select, func, and_, or_
 
 from models import Applicant, SessionLocal
+from scrape import pull_new_data
 
 
 app = Flask(__name__)
+
+pull_lock = threading.Lock()
+
+pull_status = {
+    "running": False,
+    "message": "No data pull is currently running."
+}
 
 
 def get_analysis_results():
@@ -276,11 +289,129 @@ def get_analysis_results():
             "q11": q11,
         }
 
+def run_data_pull():
+    """
+    Check GradCafe for new records, clean new data,
+    and add usable records to PostgreSQL.
+    """
+
+    try:
+        pull_status["message"] = (
+            "Checking GradCafe for newly submitted results..."
+        )
+
+        new_count = pull_new_data()
+
+        if new_count == 0:
+            pull_status["message"] = (
+                "Pull complete. No new GradCafe records were found."
+            )
+            return
+
+        pull_status["message"] = (
+            f"Found {new_count} new records. "
+            "Processing the new data..."
+        )
+
+        module_dir = os.path.dirname(
+            os.path.abspath(__file__)
+        )
+
+        # Run the existing Module 2 cleaning/LLM pipeline.
+        clean_result = subprocess.run(
+            [
+                sys.executable,
+                "clean.py",
+            ],
+            cwd=module_dir,
+            capture_output=True,
+            text=True,
+        )
+
+        if clean_result.returncode != 0:
+            print(clean_result.stderr)
+
+            pull_status["message"] = (
+                "New records were found, but an error occurred "
+                "while processing the data."
+            )
+            return
+
+        pull_status["message"] = (
+            "Data processing complete. Adding new records "
+            "to PostgreSQL..."
+        )
+
+        # Insert newly processed records into PostgreSQL.
+        load_result = subprocess.run(
+            [
+                sys.executable,
+                "load_data.py",
+            ],
+            cwd=module_dir,
+            capture_output=True,
+            text=True,
+        )
+
+        if load_result.returncode != 0:
+            print(load_result.stderr)
+
+            pull_status["message"] = (
+                "The records were processed, but an error "
+                "occurred while updating the database."
+            )
+            return
+
+        pull_status["message"] = (
+            f"Pull complete. {new_count} new GradCafe records "
+            "were processed and the database was updated."
+        )
+
+    except Exception as error:
+        print(f"Pull Data error: {error}")
+
+        pull_status["message"] = (
+            "The data pull encountered an unexpected error."
+        )
+
+    finally:
+        pull_status["running"] = False
+        pull_lock.release()
 
 @app.route("/")
 def index():
     results = get_analysis_results()
-    return render_template("index.html", results=results)
+
+    return render_template(
+        "index.html",
+        results=results,
+        pull_status=pull_status,
+    )
+
+@app.route("/pull-data", methods=["POST"])
+def pull_data():
+
+    if not pull_lock.acquire(blocking=False):
+        pull_status["message"] = (
+            "A data pull is already running. "
+            "Please wait for it to finish."
+        )
+
+        return redirect(url_for("index"))
+
+    pull_status["running"] = True
+    pull_status["message"] = (
+        "Starting GradCafe data pull..."
+    )
+
+    thread = threading.Thread(
+        target=run_data_pull,
+        daemon=True,
+    )
+
+    thread.start()
+
+    return redirect(url_for("index"))
 
 
 if __name__ == "__main__":
