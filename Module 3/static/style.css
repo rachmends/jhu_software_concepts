@@ -121,3 +121,35 @@ footer {
 .status {
     margin-top: 18px;
 }
+
+.analysis-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.analysis-message {
+    margin: 0;
+    padding: 10px 14px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    line-height: 1.5;
+}
+
+.update-button {
+    white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+    .analysis-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .update-button {
+        width: 100%;
+    }
+}

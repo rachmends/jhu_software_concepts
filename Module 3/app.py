@@ -3,7 +3,7 @@ import subprocess
 import threading
 import sys
 
-from flask import Flask, render_template, redirect, url_for
+from flask import Flask, render_template, redirect, url_for, request
 from sqlalchemy import select, func, and_, or_
 
 from models import Applicant, SessionLocal
@@ -382,10 +382,31 @@ def run_data_pull():
 def index():
     results = get_analysis_results()
 
+    analysis_status = request.args.get(
+        "analysis_status"
+    )
+
+    if analysis_status == "updated":
+        analysis_message = (
+            "Analysis updated using the most current "
+            "data available in PostgreSQL."
+        )
+
+    elif analysis_status == "pull_running":
+        analysis_message = (
+            "New data is currently being retrieved. "
+            "The analysis has been refreshed using the "
+            "records currently available in PostgreSQL."
+        )
+
+    else:
+        analysis_message = None
+
     return render_template(
         "index.html",
         results=results,
         pull_status=pull_status,
+        analysis_message=analysis_message,
     )
 
 @app.route("/pull-data", methods=["POST"])
@@ -413,6 +434,29 @@ def pull_data():
 
     return redirect(url_for("index"))
 
+@app.route("/update-analysis", methods=["POST"])
+def update_analysis():
+
+    if pull_status["running"]:
+        pull_status["message"] = (
+            "New GradCafe data is currently being retrieved. "
+            "The analysis below reflects the data currently "
+            "available in PostgreSQL."
+        )
+
+        return redirect(
+            url_for(
+                "index",
+                analysis_status="pull_running"
+            )
+        )
+
+    return redirect(
+        url_for(
+            "index",
+            analysis_status="updated"
+        )
+    )
 
 if __name__ == "__main__":
     app.run(debug=True)

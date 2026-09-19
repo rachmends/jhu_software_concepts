@@ -21,6 +21,30 @@
     </header>
 
     <main>
+        <div class="analysis-toolbar">
+
+            <div>
+                {% if analysis_message %}
+                    <p class="analysis-message">
+                        {{ analysis_message }}
+                    </p>
+                {% endif %}
+            </div>
+        
+            <form
+                action="{{ url_for('update_analysis') }}"
+                method="POST"
+            >
+                <button
+                    type="submit"
+                    class="button update-button"
+                >
+                    Update Analysis
+                </button>
+            </form>
+        
+        </div>
+
         <section class="data-controls">
 
             <h2>Data Management</h2>
