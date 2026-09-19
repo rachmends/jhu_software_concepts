@@ -15,6 +15,12 @@
 
 This assignment will introduce you to querying relational databases using SQL and interacting with those databases using an Object-Relational Mapper (ORM)
 
+### Prerequisites
+
+- Python 3.11.10
+- PostgreSQL
+- Google Chrome
+
 ## Setup and Run Instructions
 
 ### 1. Install Required Python Packages
