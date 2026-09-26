@@ -173,6 +173,8 @@ Evidence of a successful GitHub Actions run is included in:
 
 ```text
 actions_success.png
+actions_success_usage.png
+Add GitHub Actions test workflow · rachmends_jhu_software_concepts@50ff428.pdf
 ```
 
 ## Documentation
