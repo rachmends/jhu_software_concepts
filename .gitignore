@@ -4,3 +4,22 @@ llm_hosting/models/
 
 # Local LLM model files
 Module 2/llm_hosting/models/
+
+# Module 3 non-deliverable files
+Module 3/Non Deliverables/
+
+# Environment variables / secrets
+.env
+.env.*
+Module 3/.env
+Module 3/.env.*
+
+# Local LLM model files
+Module 3/llm_hosting/models/
+
+# macOS metadata
+.DS_Store
+
+# Python cache files
+__pycache__/
+*.pyc
