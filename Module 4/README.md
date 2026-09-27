@@ -191,7 +191,7 @@ The documentation includes:
 
 ### Published Documentation
 
-**[GradCafe Application Documentation][(https://jhu-software-concepts-rmends.readthedocs.io)]**
+**[GradCafe Application Documentation](https://jhu-software-concepts-rmends.readthedocs.io)**
 
 To build the documentation locally from the `Module 4` directory:
 
