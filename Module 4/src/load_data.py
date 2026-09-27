@@ -9,7 +9,16 @@ DATA_FILE = "llm_extend_applicant_data.json"
 
 
 def clean_text(value):
-    """Convert empty strings and missing values to None."""
+    """
+    Normalize a text value before database insertion.
+
+    Args:
+        value: Value to normalize.
+
+    Returns:
+        str or None: Cleaned text value, or ``None`` when the value is missing
+        or contains only whitespace.
+    """
     if value is None:
         return None
 
@@ -22,7 +31,16 @@ def clean_text(value):
 
 
 def clean_float(value):
-    """Convert numeric values to floats; missing/invalid values become None."""
+    """
+    Convert an applicant value to a floating-point number.
+
+    Args:
+        value: Value to convert.
+
+    Returns:
+        float or None: Converted numeric value. Missing values and values that
+        cannot be converted are returned as ``None``.
+    """
     if value is None or value == "":
         return None
 
@@ -32,7 +50,15 @@ def clean_float(value):
         return None
 
 def clean_date(value):
-    """Convert GradCafe date strings to Python date objects."""
+    """
+    Convert a GradCafe decision-date value to a Python date.
+
+    Args:
+        value: GradCafe date value to convert.
+
+    Returns:
+        date or None: Parsed date when the value is valid; otherwise ``None``.
+    """
     if value is None or value == "":
         return None
 
@@ -42,13 +68,31 @@ def clean_date(value):
         return None
 
 def load_data(filename):
-    """Load the cleaned Module 2 JSON data."""
+    """
+    Load cleaned applicant records from a JSON file.
+
+    Args:
+        filename (str): Path to the cleaned GradCafe JSON dataset.
+
+    Returns:
+        list: Applicant dictionaries read from the file.
+    """
     with open(filename, "r", encoding="utf-8") as file:
         return json.load(file)
 
 
 def create_table(cursor):
-    """Create the required applicants table."""
+    """
+    Create the PostgreSQL ``applicants`` table when it does not already exist.
+
+    The table follows the applicant schema used by the GradCafe analysis
+    application. It includes a serial primary key and a unique URL field used
+    to identify individual GradCafe applicant records.
+
+    Args:
+        cursor: Active psycopg database cursor used to execute the table
+            creation statement.
+    """
 
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS applicants (
@@ -72,7 +116,19 @@ def create_table(cursor):
 
 
 def insert_applicant(cursor, applicant):
-    """Insert one applicant into PostgreSQL."""
+    """
+    Insert one cleaned GradCafe applicant record into PostgreSQL.
+
+    Builds the stored program name from the available university and program
+    values, normalizes database fields, and inserts the applicant using the
+    Module 3 database schema. The applicant URL provides the uniqueness
+    constraint used to prevent duplicate GradCafe records from being stored.
+
+    Args:
+        cursor: Active psycopg database cursor used for the INSERT operation.
+        applicant (dict): Cleaned applicant record containing the values to
+            store in PostgreSQL.
+    """
 
     university = clean_text(applicant.get("university"))
     program = clean_text(applicant.get("program"))
@@ -128,6 +184,21 @@ def insert_applicant(cursor, applicant):
 
 
 def main():
+    
+    """
+    Load the cleaned GradCafe dataset into PostgreSQL.
+
+    Reads the database name and user from the ``DB_NAME`` and ``DB_USER``
+    environment variables, loads the cleaned applicant JSON data, creates the
+    ``applicants`` table when necessary, and inserts the applicant records.
+
+    Database changes are committed after processing. Progress is reported
+    during large loads.
+
+    Raises:
+        RuntimeError: If the required database environment variables are not
+            configured.
+    """
 
     # Database credentials come from environment variables.
     # Nothing secret is stored in this file.

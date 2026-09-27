@@ -1,86 +1,105 @@
 Architecture
 ============
 
-The application is organized into three primary layers: the web layer,
-ETL layer, and database/analysis layer.
+The GradCafe application is organized into three primary layers: the web
+layer, the ETL layer, and the database and analysis layer. Together, these
+layers collect GradCafe applicant data, process and store the records, and
+display analysis results through the Flask application.
 
 Web Layer
 ---------
 
-``app.py`` contains the Flask application.
+The web layer is implemented in :mod:`app`.
 
-The web layer is responsible for:
+The Flask application is responsible for displaying the GradCafe analysis
+page, retrieving analysis results from the database, and handling user actions
+from the web interface.
 
-* Creating and configuring the Flask application.
-* Serving the analysis page.
-* Displaying analysis results.
-* Handling the Pull Data action.
-* Handling the Update Analysis action.
-* Preventing conflicting operations while a data pull is running.
+The application provides two primary user actions:
 
-The application exposes a ``create_app()`` factory so that tests can create
-a Flask application without starting the development server.
+* **Pull Data** starts the process of retrieving and processing newly available
+  GradCafe records.
+* **Update Analysis** refreshes the displayed analysis using the records
+  currently stored in PostgreSQL.
+
+The application also prevents conflicting operations while a data pull is
+already running.
+
+The ``create_app()`` application factory allows the Flask application to be
+created with different configurations, including configurations used by the
+automated test suite.
 
 ETL Layer
 ---------
 
-The ETL pipeline is primarily implemented by ``scrape.py``, ``clean.py``,
-and ``load_data.py``.
+The ETL layer is responsible for extracting, transforming, and loading
+GradCafe applicant data.
 
-``scrape.py``
-   Retrieves Grad Café applicant records and converts the source data into
-   structured applicant records.
+The ETL process is divided among three primary modules:
 
-``clean.py``
-   Cleans and normalizes the collected data before database loading.
+* :mod:`scrape` retrieves GradCafe applicant records and checks for newly
+  available results.
+* :mod:`clean` cleans and normalizes the collected applicant records.
+* :mod:`load_data` loads the processed applicant records into PostgreSQL.
 
-``load_data.py``
-   Loads the processed applicant records into PostgreSQL while preserving
-   the application's database schema and duplicate-handling behavior.
+Separating these responsibilities allows each stage of the data pipeline to be
+tested independently. During automated testing, external behavior such as live
+web requests is replaced with deterministic test doubles.
 
 Database and Analysis Layer
 ---------------------------
 
-PostgreSQL stores the Grad Café applicant records.
+PostgreSQL provides persistent storage for the processed GradCafe applicant
+records.
 
-``models.py``
-   Defines the SQLAlchemy representation of the applicant data and database
-   session configuration.
+The database and analysis functionality is divided among the following
+modules:
 
-``query_data.py``
-   Performs the raw SQL analysis queries.
+* :mod:`models` defines the SQLAlchemy applicant model and database
+  configuration.
+* :mod:`query_data` performs analysis of the applicant data using raw SQL.
+* :mod:`orm_queries` performs analysis using SQLAlchemy.
 
-``orm_queries.py``
-   Implements analysis using SQLAlchemy ORM operations.
+The Flask web layer uses the database and analysis functionality to generate
+the results displayed on the analysis page.
 
-The Flask application uses the database layer to calculate the values
-displayed on the analysis page.
+Application Data Flow
+---------------------
 
-Data Flow
----------
-
-The overall data flow is:
+The overall application flow is:
 
 .. code-block:: text
 
-   Grad Café
+   GradCafe
        |
        v
-   scrape.py
+   scrape
        |
        v
-   clean.py
+   clean
        |
        v
-   load_data.py
+   load_data
        |
        v
    PostgreSQL
        |
-       +-------------------+
-       |                   |
-       v                   v
-   query_data.py        app.py
-                           |
-                           v
-                     Analysis Page
+       v
+   query_data / SQLAlchemy
+       |
+       v
+   Flask Application
+       |
+       v
+   Analysis Page
+
+The scraping layer retrieves applicant records, the cleaning layer transforms
+the records into a consistent format, and the loading layer stores the
+processed records in PostgreSQL. The analysis layer queries the stored data,
+and the Flask web layer presents the resulting analysis to the user.
+
+API Documentation
+-----------------
+
+Detailed API documentation for the application modules is available in the
+:doc:`api` reference.

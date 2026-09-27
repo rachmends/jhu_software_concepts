@@ -3,7 +3,18 @@ import psycopg
 
 
 def get_connection():
-    """Connect to PostgreSQL using environment variables."""
+    """
+    Create a PostgreSQL connection using environment configuration.
+
+    Reads ``DB_NAME`` and ``DB_USER`` from the environment and uses them to
+    establish the psycopg connection used by the raw SQL analysis.
+
+    Returns:
+        psycopg.Connection: Open PostgreSQL connection.
+
+    Raises:
+        RuntimeError: If ``DB_NAME`` or ``DB_USER`` is not configured.
+    """
     db_name = os.getenv("DB_NAME")
     db_user = os.getenv("DB_USER")
 
@@ -20,6 +31,20 @@ def get_connection():
 
 
 def main():
+    """
+    Execute and display the GradCafe raw SQL analysis.
+
+    Connects to PostgreSQL and executes the eleven analysis questions used by
+    the GradCafe project. The analysis includes applicant counts, nationality
+    percentages, GPA and GRE averages, acceptance percentages, Johns Hopkins
+    Computer Science applicant counts, comparisons between original and
+    LLM-generated fields, and the two Princeton Fall 2026 analyses.
+
+    Percentage and average results are formatted for readable terminal output.
+    PostgreSQL aggregate operations ignore missing values where appropriate,
+    while GRE calculations restrict values to the valid ranges used by the
+    analysis.
+    """
     with get_connection() as conn:
         with conn.cursor() as cursor:
 

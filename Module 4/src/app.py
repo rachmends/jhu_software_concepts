@@ -19,7 +19,18 @@ pull_status = {
 
 
 def get_analysis_results():
-    """Retrieve all analysis results from PostgreSQL using SQLAlchemy."""
+    """
+    Retrieve all GradCafe analysis results using SQLAlchemy.
+
+    Executes the database queries required for Questions 1 through 11 on the
+    analysis page. Results include applicant counts, international applicant
+    percentages, GPA and GRE averages, acceptance percentages, field
+    comparisons, and the Princeton Fall 2026 analyses.
+
+    Returns:
+        dict: Analysis results keyed by the question identifiers expected by
+        the Flask analysis template.
+    """
 
     with SessionLocal() as session:
 
@@ -289,8 +300,19 @@ def get_analysis_results():
 
 def run_data_pull():
     """
-    Check GradCafe for new records, clean new data,
-    and add usable records to PostgreSQL.
+    Run the complete Pull Data workflow in the background.
+
+    Checks GradCafe for newly submitted applicant records. If new records are
+    found, the function runs the existing cleaning pipeline and then executes
+    the database loader to add the processed records to PostgreSQL.
+
+    The shared pull status is updated throughout the workflow so the web
+    interface can report whether records are being retrieved, processed, or
+    loaded. Cleaning and database-loading failures are reported without
+    starting a conflicting operation.
+
+    The running status is cleared and the pull lock is released when the
+    workflow finishes.
     """
 
     try:
@@ -377,6 +399,17 @@ def run_data_pull():
         pull_lock.release()
 
 def index():
+    """
+    Render the GradCafe analysis page.
+
+    Retrieves the current SQLAlchemy analysis results and passes them to the
+    Flask template along with the current Pull Data status. The optional
+    ``analysis_status`` query parameter controls the status message displayed
+    after an analysis refresh or while a data pull is running.
+
+    Returns:
+        Response: Rendered GradCafe analysis page.
+    """
     results = get_analysis_results()
 
     analysis_status = request.args.get(
@@ -407,6 +440,21 @@ def index():
     )
 
 def pull_data():
+    """
+    Start a background GradCafe data pull.
+
+    Attempts to acquire the application data-pull lock. If another pull is
+    already running, the route returns HTTP 409 with ``busy`` set to true.
+
+    When the application is available, the route marks the pull as running,
+    starts :func:`run_data_pull` in a background thread, and immediately
+    returns HTTP 202 so the web request does not wait for the complete ETL
+    workflow.
+
+    Returns:
+        Response: JSON response with HTTP 202 when the pull starts, or HTTP
+        409 when another pull is already running.
+    """
 
     if not pull_lock.acquire(blocking=False):
         pull_status["message"] = (
@@ -437,6 +485,19 @@ def pull_data():
     }), 202
 
 def update_analysis():
+    """
+    Request an analysis refresh using the current PostgreSQL data.
+
+    The analysis cannot be refreshed while a GradCafe data pull is running.
+    In that case, the route returns HTTP 409 with ``busy`` set to true.
+    Otherwise, it returns HTTP 200 so the client can refresh the analysis
+    using the most current database contents.
+
+    Returns:
+        Response: JSON response with HTTP 200 when an update is available, or
+        HTTP 409 while a data pull is in progress.
+    """
+
 
     if pull_status["running"]:
         pull_status["message"] = (
@@ -456,7 +517,20 @@ def update_analysis():
     }), 200
 
 def create_app(test_config=None):
-    """Create and configure the Flask application."""
+    """
+    Create and configure the Flask application.
+
+    Creates the Flask application, applies an optional configuration
+    dictionary, and registers the analysis, Pull Data, and Update Analysis
+    routes.
+
+    Args:
+        test_config (dict, optional): Configuration values used to override
+            the application's defaults, particularly during automated tests.
+
+    Returns:
+        Flask: Configured Flask application.
+    """
     app = Flask(__name__)
 
     if test_config:

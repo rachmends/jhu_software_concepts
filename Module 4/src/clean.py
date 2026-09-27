@@ -47,6 +47,22 @@ PROGRESS_INTERVAL_SECONDS = 30
 # ============================================================
 
 def load_data(path=INPUT_FILE):
+    """
+    Load applicant records from a JSON file.
+
+    Reads the specified UTF-8 JSON file and verifies that its top-level value
+    is a list of applicant records.
+
+    Args:
+        path (Path): JSON file to read. By default, the raw GradCafe applicant
+            dataset in ``applicant_data.json`` is used.
+
+    Returns:
+        list: Applicant records loaded from the JSON file.
+
+    Raises:
+        ValueError: If the JSON file does not contain a list.
+    """
 
     with open(path, "r", encoding="utf-8") as f:
 
@@ -62,6 +78,17 @@ def load_data(path=INPUT_FILE):
 
 
 def save_data(data, path=OUTPUT_FILE):
+    """
+    Save cleaned applicant records as formatted JSON.
+
+    Writes the supplied records as UTF-8 JSON while preserving Unicode
+    characters.
+
+    Args:
+        data (list): Cleaned applicant records to save.
+        path (Path): Destination JSON file. By default, records are written
+            to ``llm_extend_applicant_data.json``.
+    """
 
     with open(path, "w", encoding="utf-8") as f:
 
@@ -522,6 +549,38 @@ def clean_data(
     workers=DEFAULT_WORKERS,
     reset=False
 ):
+    """
+    Clean and enrich the scraped GradCafe applicant dataset.
+
+    Loads records from ``applicant_data.json`` and processes records that have
+    not already been cleaned. Existing cleaned output is validated against the
+    beginning of the current scraped dataset so that interrupted cleaning runs
+    can safely resume without misaligning records.
+
+    Remaining records are divided into chunks and processed using the local
+    LLM cleaning pipeline. Work can be distributed across multiple workers,
+    and saved chunk progress can be reused on later runs. After processing,
+    chunk results are merged, generated program and university fields are
+    postprocessed, and the complete cleaned dataset is written to
+    ``llm_extend_applicant_data.json``.
+
+    Args:
+        workers (int): Number of parallel LLM workers to use. The value is
+            constrained by the number of available records and processing
+            resources.
+        reset (bool): If True, discard saved LLM chunk progress and restart
+            cleaning from the beginning.
+
+    Returns:
+        list: Complete cleaned and enriched applicant dataset.
+
+    Raises:
+        ValueError: If the input dataset is empty, existing cleaned output is
+            longer than the raw dataset, or existing cleaned records no longer
+            correspond to the raw records.
+        RuntimeError: If the cleaning pipeline does not produce the expected
+            number of records.
+    """
 
     print("Loading applicant data...")
 
@@ -804,6 +863,15 @@ def clean_data(
 # ============================================================
 
 def main():
+    """
+    Run the GradCafe cleaning pipeline from the command line.
+
+    Parses the ``--workers`` and ``--reset`` command-line options and passes
+    them to :func:`clean_data`.
+
+    ``--workers`` controls the number of parallel local LLM workers.
+    ``--reset`` discards previously saved chunk progress before processing.
+    """
 
     parser = argparse.ArgumentParser(
         description=(

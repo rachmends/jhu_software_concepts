@@ -698,7 +698,16 @@ def _parse_page(html):
 
 def load_data():
     """
-    Load existing JSON records.
+    Load the previously collected GradCafe applicant records.
+
+    Reads ``applicant_data.json`` and returns the stored applicant records.
+    If the file does not exist, is empty, contains invalid JSON, or does not
+    contain a JSON list, an empty list is returned so that scraping can begin
+    with an empty dataset.
+
+    Returns:
+        list: Existing GradCafe applicant records, or an empty list when no
+        usable saved dataset is available.
     """
 
     if not OUTPUT_FILE.exists():
@@ -733,7 +742,14 @@ def load_data():
 
 def save_data(records):
     """
-    Save records as formatted JSON.
+    Save GradCafe applicant records to the scraper output file.
+
+    Writes the supplied records to ``applicant_data.json`` as formatted,
+    UTF-8 JSON. Unicode characters are preserved rather than converted to
+    ASCII escape sequences.
+
+    Args:
+        records (list): Applicant records to save.
     """
 
     with OUTPUT_FILE.open(
@@ -929,6 +945,21 @@ def _merge_records(existing_records, new_records):
 # ============================================================
 
 def scrape_data():
+    """
+    Run the main paginated GradCafe collection process.
+
+    Loads any applicant records already saved locally and resumes collection
+    using the scraper's saved pagination state when available. For each page,
+    the function captures GradCafe HTML through Chrome, parses applicant
+    records, removes duplicates, saves the accumulated dataset, and records
+    the next-page URL so an interrupted run can resume later.
+
+    Collection stops when the target number of records is reached, no next
+    page is available, the next-page URL does not change, or the configured
+    per-run page limit is reached.
+
+    The collected records are stored in ``applicant_data.json``.
+    """
     all_records = _deduplicate_records(load_data())
     start_count = len(all_records)
 
@@ -1034,13 +1065,24 @@ def scrape_data():
     print(f"Data: {OUTPUT_FILE} | Resume state: {STATE_FILE}")
 
 def pull_new_data():
-    # PULL DATA BUTTON ON THE ANALYSIS WEBSITE #
     """
-    Check GradCafe's newest results for records that are not
-    already stored in applicant_data.json.
+    Retrieve newly available GradCafe applicant records.
 
-    Stop after reaching a page containing only records that
-    have already been collected.
+    Loads the existing applicant dataset and creates keys for the records that
+    have already been collected. The scraper then begins with the newest
+    GradCafe results, captures the current page through Chrome, parses the
+    applicant records, and compares them with the existing dataset.
+
+    New records are added to ``applicant_data.json`` while previously
+    collected records are skipped. Pagination continues until the scraper
+    reaches a page containing only records that are already present, no usable
+    records are found, GradCafe displays a verification page, or no next page
+    is available.
+
+    The function is used by the Flask application's Pull Data workflow.
+
+    Returns:
+        int: Number of newly collected applicant records.
     """
 
     all_records = _deduplicate_records(load_data())
@@ -1152,7 +1194,12 @@ def pull_new_data():
     return total_new
 
 def main():
-    """Run the GradCafe scraper."""
+    """
+    Run the GradCafe scraper from the command line.
+
+    Serves as the command-line entry point for the scraping module and starts
+    the primary GradCafe data collection workflow.
+    """
     scrape_data()
 
 
