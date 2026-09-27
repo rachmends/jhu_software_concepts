@@ -8,11 +8,21 @@ Welcome to Module 4's documentation!
 
 .. automodule:: add
    :members:
-   
+
+Grad Café Application
+---------------------
+
+This documentation covers the Grad Café application's setup, architecture,
+API reference, and automated testing strategy.
+
 .. toctree::
    :maxdepth: 2
    :caption: Contents:
 
+   overview
+   architecture
+   api
+   testing
 
 
 Indices and tables

@@ -1,0 +1,201 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Testing Guide &mdash; Module 4 Sept 27, 2026 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a2b66c3f"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="API Reference" href="api.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Module 4
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview and Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Testing Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#test-suite">Test Suite</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#marked-tests">Marked Tests</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#coverage">Coverage</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#stable-page-selectors">Stable Page Selectors</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#test-doubles-and-fixtures">Test Doubles and Fixtures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#continuous-integration">Continuous Integration</a></li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Module 4</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Testing Guide</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/testing.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="testing-guide">
+<h1>Testing Guide<a class="headerlink" href="#testing-guide" title="Link to this heading"></a></h1>
+<section id="test-suite">
+<h2>Test Suite<a class="headerlink" href="#test-suite" title="Link to this heading"></a></h2>
+<p>The project uses pytest and pytest-cov. Tests are located in the
+<code class="docutils literal notranslate"><span class="pre">Module</span> <span class="pre">4/tests</span></code> directory.</p>
+<p>Run the complete suite from <code class="docutils literal notranslate"><span class="pre">Module</span> <span class="pre">4</span></code>:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest
+</pre></div>
+</div>
+</section>
+<section id="marked-tests">
+<h2>Marked Tests<a class="headerlink" href="#marked-tests" title="Link to this heading"></a></h2>
+<p>Every test uses at least one of the assignment’s pytest markers:</p>
+<dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">web</span></code></dt><dd><p>Flask application, route, and page behavior.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">buttons</span></code></dt><dd><p>Pull Data and Update Analysis behavior.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">analysis</span></code></dt><dd><p>Analysis output and formatting.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">db</span></code></dt><dd><p>Database behavior, loading, querying, and persistence.</p>
+</dd>
+<dt><code class="docutils literal notranslate"><span class="pre">integration</span></code></dt><dd><p>Tests involving multiple application layers.</p>
+</dd>
+</dl>
+<p>Run all assignment marker groups with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">"web or buttons or analysis or db or integration"</span>
+</pre></div>
+</div>
+<p>Individual groups can also be selected. For example:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>-m<span class="w"> </span>web
+pytest<span class="w"> </span>-m<span class="w"> </span>buttons
+pytest<span class="w"> </span>-m<span class="w"> </span>db
+</pre></div>
+</div>
+</section>
+<section id="coverage">
+<h2>Coverage<a class="headerlink" href="#coverage" title="Link to this heading"></a></h2>
+<p>Coverage is measured using pytest-cov. The Module 4 configuration requires
+coverage of the source code under <code class="docutils literal notranslate"><span class="pre">src</span></code>.</p>
+<p>The terminal coverage report can be generated with:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>pytest<span class="w"> </span>-m<span class="w"> </span><span class="s2">"web or buttons or analysis or db or integration"</span>
+</pre></div>
+</div>
+<p>The committed terminal coverage summary is stored in
+<code class="docutils literal notranslate"><span class="pre">coverage_summary.txt</span></code>.</p>
+</section>
+<section id="stable-page-selectors">
+<h2>Stable Page Selectors<a class="headerlink" href="#stable-page-selectors" title="Link to this heading"></a></h2>
+<p>The Flask analysis page provides stable selectors for the primary actions.</p>
+<p>The Pull Data button uses:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>data-testid="pull-data-btn"
+</pre></div>
+</div>
+<p>The Update Analysis button uses:</p>
+<div class="highlight-text notranslate"><div class="highlight"><pre><span></span>data-testid="update-analysis-btn"
+</pre></div>
+</div>
+<p>Analysis results also use consistent <code class="docutils literal notranslate"><span class="pre">Answer:</span></code> labels so tests can verify
+that analysis output is present.</p>
+</section>
+<section id="test-doubles-and-fixtures">
+<h2>Test Doubles and Fixtures<a class="headerlink" href="#test-doubles-and-fixtures" title="Link to this heading"></a></h2>
+<p>The test suite avoids live internet requests and long-running Grad Café
+scrapes.</p>
+<p>pytest’s <code class="docutils literal notranslate"><span class="pre">monkeypatch</span></code> fixture is used to replace external dependencies
+and isolate application behavior during testing.</p>
+<p><code class="docutils literal notranslate"><span class="pre">tmp_path</span></code> is used where tests require temporary files without modifying
+project data.</p>
+<p>Small fake objects are used for dependencies such as database cursors,
+database connections, SQLAlchemy sessions, threads, and subprocess results.
+These test doubles allow error and success paths to be tested
+deterministically without relying on external services.</p>
+<p>Flask’s test client and test request contexts are used to test routes and
+rendering without requiring manual browser interaction.</p>
+</section>
+<section id="continuous-integration">
+<h2>Continuous Integration<a class="headerlink" href="#continuous-integration" title="Link to this heading"></a></h2>
+<p>The repository contains a GitHub Actions workflow at
+<code class="docutils literal notranslate"><span class="pre">.github/workflows/tests.yml</span></code>.</p>
+<p>The workflow starts PostgreSQL, installs the Module 4 Python dependencies,
+and runs the marked pytest suite automatically. This verifies the test suite
+in a clean CI environment in addition to local testing.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="api.html" class="btn btn-neutral float-left" title="API Reference" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Rachael Mends.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

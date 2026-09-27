@@ -1,0 +1,606 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>API Reference &mdash; Module 4 Sept 27, 2026 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=a2b66c3f"></script>
+      <script src="_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Testing Guide" href="testing.html" />
+    <link rel="prev" title="Architecture" href="architecture.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Module 4
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="overview.html">Overview and Setup</a></li>
+<li class="toctree-l1"><a class="reference internal" href="architecture.html">Architecture</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#scraper">Scraper</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#scrape.load_data"><code class="docutils literal notranslate"><span class="pre">load_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scrape.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scrape.pull_new_data"><code class="docutils literal notranslate"><span class="pre">pull_new_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scrape.save_data"><code class="docutils literal notranslate"><span class="pre">save_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#scrape.scrape_data"><code class="docutils literal notranslate"><span class="pre">scrape_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#cleaning">Cleaning</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#clean.clean_data"><code class="docutils literal notranslate"><span class="pre">clean_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#clean.load_data"><code class="docutils literal notranslate"><span class="pre">load_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#clean.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#clean.save_data"><code class="docutils literal notranslate"><span class="pre">save_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#database-loader">Database Loader</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#load_data.clean_date"><code class="docutils literal notranslate"><span class="pre">clean_date()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#load_data.clean_float"><code class="docutils literal notranslate"><span class="pre">clean_float()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#load_data.clean_text"><code class="docutils literal notranslate"><span class="pre">clean_text()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#load_data.create_table"><code class="docutils literal notranslate"><span class="pre">create_table()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#load_data.insert_applicant"><code class="docutils literal notranslate"><span class="pre">insert_applicant()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#load_data.load_data"><code class="docutils literal notranslate"><span class="pre">load_data()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#load_data.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#raw-sql-queries">Raw SQL Queries</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#query_data.get_connection"><code class="docutils literal notranslate"><span class="pre">get_connection()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#query_data.main"><code class="docutils literal notranslate"><span class="pre">main()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#flask-application-and-routes">Flask Application and Routes</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#application-factory">Application Factory</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#app.create_app"><code class="docutils literal notranslate"><span class="pre">create_app()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis-page">Analysis Page</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#app.index"><code class="docutils literal notranslate"><span class="pre">index()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#pull-data">Pull Data</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#app.pull_data"><code class="docutils literal notranslate"><span class="pre">pull_data()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#update-analysis">Update Analysis</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#app.update_analysis"><code class="docutils literal notranslate"><span class="pre">update_analysis()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#analysis-results">Analysis Results</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#app.get_analysis_results"><code class="docutils literal notranslate"><span class="pre">get_analysis_results()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#data-pull-workflow">Data Pull Workflow</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#app.run_data_pull"><code class="docutils literal notranslate"><span class="pre">run_data_pull()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="testing.html">Testing Guide</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Module 4</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">API Reference</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/api.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="api-reference">
+<h1>API Reference<a class="headerlink" href="#api-reference" title="Link to this heading"></a></h1>
+<p>This reference documents the primary modules and functions used by the
+GradCafe application.</p>
+<section id="scraper">
+<h2>Scraper<a class="headerlink" href="#scraper" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="#module-scrape" title="scrape"><code class="xref py py-mod docutils literal notranslate"><span class="pre">scrape</span></code></a> module retrieves GradCafe applicant records and checks for
+newly available data.</p>
+<dl class="py function" id="module-scrape">
+<dt class="sig sig-object py" id="scrape.load_data">
+<span class="sig-prename descclassname"><span class="pre">scrape.</span></span><span class="sig-name descname"><span class="pre">load_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scrape.load_data" title="Link to this definition"></a></dt>
+<dd><p>Load the previously collected GradCafe applicant records.</p>
+<p>Reads <code class="docutils literal notranslate"><span class="pre">applicant_data.json</span></code> and returns the stored applicant records.
+If the file does not exist, is empty, contains invalid JSON, or does not
+contain a JSON list, an empty list is returned so that scraping can begin
+with an empty dataset.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>list: Existing GradCafe applicant records, or an empty list when no
+usable saved dataset is available.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scrape.main">
+<span class="sig-prename descclassname"><span class="pre">scrape.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scrape.main" title="Link to this definition"></a></dt>
+<dd><p>Run the GradCafe scraper from the command line.</p>
+<p>Serves as the command-line entry point for the scraping module and starts
+the primary GradCafe data collection workflow.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scrape.pull_new_data">
+<span class="sig-prename descclassname"><span class="pre">scrape.</span></span><span class="sig-name descname"><span class="pre">pull_new_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scrape.pull_new_data" title="Link to this definition"></a></dt>
+<dd><p>Retrieve newly available GradCafe applicant records.</p>
+<p>Loads the existing applicant dataset and creates keys for the records that
+have already been collected. The scraper then begins with the newest
+GradCafe results, captures the current page through Chrome, parses the
+applicant records, and compares them with the existing dataset.</p>
+<p>New records are added to <code class="docutils literal notranslate"><span class="pre">applicant_data.json</span></code> while previously
+collected records are skipped. Pagination continues until the scraper
+reaches a page containing only records that are already present, no usable
+records are found, GradCafe displays a verification page, or no next page
+is available.</p>
+<p>The function is used by the Flask application’s Pull Data workflow.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>int: Number of newly collected applicant records.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scrape.save_data">
+<span class="sig-prename descclassname"><span class="pre">scrape.</span></span><span class="sig-name descname"><span class="pre">save_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">records</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#scrape.save_data" title="Link to this definition"></a></dt>
+<dd><p>Save GradCafe applicant records to the scraper output file.</p>
+<p>Writes the supplied records to <code class="docutils literal notranslate"><span class="pre">applicant_data.json</span></code> as formatted,
+UTF-8 JSON. Unicode characters are preserved rather than converted to
+ASCII escape sequences.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>records (list): Applicant records to save.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="scrape.scrape_data">
+<span class="sig-prename descclassname"><span class="pre">scrape.</span></span><span class="sig-name descname"><span class="pre">scrape_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#scrape.scrape_data" title="Link to this definition"></a></dt>
+<dd><p>Run the main paginated GradCafe collection process.</p>
+<p>Loads any applicant records already saved locally and resumes collection
+using the scraper’s saved pagination state when available. For each page,
+the function captures GradCafe HTML through Chrome, parses applicant
+records, removes duplicates, saves the accumulated dataset, and records
+the next-page URL so an interrupted run can resume later.</p>
+<p>Collection stops when the target number of records is reached, no next
+page is available, the next-page URL does not change, or the configured
+per-run page limit is reached.</p>
+<p>The collected records are stored in <code class="docutils literal notranslate"><span class="pre">applicant_data.json</span></code>.</p>
+</dd></dl>
+
+</section>
+<section id="cleaning">
+<h2>Cleaning<a class="headerlink" href="#cleaning" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="#module-clean" title="clean"><code class="xref py py-mod docutils literal notranslate"><span class="pre">clean</span></code></a> module cleans and normalizes the applicant data collected by
+the scraper.</p>
+<dl class="py function" id="module-clean">
+<dt class="sig sig-object py" id="clean.clean_data">
+<span class="sig-prename descclassname"><span class="pre">clean.</span></span><span class="sig-name descname"><span class="pre">clean_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">workers</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">reset</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#clean.clean_data" title="Link to this definition"></a></dt>
+<dd><p>Clean and enrich the scraped GradCafe applicant dataset.</p>
+<p>Loads records from <code class="docutils literal notranslate"><span class="pre">applicant_data.json</span></code> and processes records that have
+not already been cleaned. Existing cleaned output is validated against the
+beginning of the current scraped dataset so that interrupted cleaning runs
+can safely resume without misaligning records.</p>
+<p>Remaining records are divided into chunks and processed using the local
+LLM cleaning pipeline. Work can be distributed across multiple workers,
+and saved chunk progress can be reused on later runs. After processing,
+chunk results are merged, generated program and university fields are
+postprocessed, and the complete cleaned dataset is written to
+<code class="docutils literal notranslate"><span class="pre">llm_extend_applicant_data.json</span></code>.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>workers (int): Number of parallel LLM workers to use. The value is</dt><dd><p>constrained by the number of available records and processing
+resources.</p>
+</dd>
+<dt>reset (bool): If True, discard saved LLM chunk progress and restart</dt><dd><p>cleaning from the beginning.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>list: Complete cleaned and enriched applicant dataset.</p>
+</dd>
+<dt>Raises:</dt><dd><dl class="simple">
+<dt>ValueError: If the input dataset is empty, existing cleaned output is</dt><dd><p>longer than the raw dataset, or existing cleaned records no longer
+correspond to the raw records.</p>
+</dd>
+<dt>RuntimeError: If the cleaning pipeline does not produce the expected</dt><dd><p>number of records.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clean.load_data">
+<span class="sig-prename descclassname"><span class="pre">clean.</span></span><span class="sig-name descname"><span class="pre">load_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">PosixPath('/Users/rachrachmendmends/Desktop/JHU</span> <span class="pre">Python/jhu_software_concepts/Module</span> <span class="pre">4/src/applicant_data.json')</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#clean.load_data" title="Link to this definition"></a></dt>
+<dd><p>Load applicant records from a JSON file.</p>
+<p>Reads the specified UTF-8 JSON file and verifies that its top-level value
+is a list of applicant records.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>path (Path): JSON file to read. By default, the raw GradCafe applicant</dt><dd><p>dataset in <code class="docutils literal notranslate"><span class="pre">applicant_data.json</span></code> is used.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>list: Applicant records loaded from the JSON file.</p>
+</dd>
+<dt>Raises:</dt><dd><p>ValueError: If the JSON file does not contain a list.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clean.main">
+<span class="sig-prename descclassname"><span class="pre">clean.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#clean.main" title="Link to this definition"></a></dt>
+<dd><p>Run the GradCafe cleaning pipeline from the command line.</p>
+<p>Parses the <code class="docutils literal notranslate"><span class="pre">--workers</span></code> and <code class="docutils literal notranslate"><span class="pre">--reset</span></code> command-line options and passes
+them to <a class="reference internal" href="#clean.clean_data" title="clean.clean_data"><code class="xref py py-func docutils literal notranslate"><span class="pre">clean_data()</span></code></a>.</p>
+<p><code class="docutils literal notranslate"><span class="pre">--workers</span></code> controls the number of parallel local LLM workers.
+<code class="docutils literal notranslate"><span class="pre">--reset</span></code> discards previously saved chunk progress before processing.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="clean.save_data">
+<span class="sig-prename descclassname"><span class="pre">clean.</span></span><span class="sig-name descname"><span class="pre">save_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">path</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">PosixPath('/Users/rachrachmendmends/Desktop/JHU</span> <span class="pre">Python/jhu_software_concepts/Module</span> <span class="pre">4/src/llm_extend_applicant_data.json')</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#clean.save_data" title="Link to this definition"></a></dt>
+<dd><p>Save cleaned applicant records as formatted JSON.</p>
+<p>Writes the supplied records as UTF-8 JSON while preserving Unicode
+characters.</p>
+<dl>
+<dt>Args:</dt><dd><p>data (list): Cleaned applicant records to save.
+path (Path): Destination JSON file. By default, records are written</p>
+<blockquote>
+<div><p>to <code class="docutils literal notranslate"><span class="pre">llm_extend_applicant_data.json</span></code>.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="database-loader">
+<h2>Database Loader<a class="headerlink" href="#database-loader" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="#module-load_data" title="load_data"><code class="xref py py-mod docutils literal notranslate"><span class="pre">load_data</span></code></a> module prepares cleaned applicant records and loads them
+into PostgreSQL.</p>
+<dl class="py function" id="module-load_data">
+<dt class="sig sig-object py" id="load_data.clean_date">
+<span class="sig-prename descclassname"><span class="pre">load_data.</span></span><span class="sig-name descname"><span class="pre">clean_date</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#load_data.clean_date" title="Link to this definition"></a></dt>
+<dd><p>Convert a GradCafe decision-date value to a Python date.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>value: GradCafe date value to convert.</p>
+</dd>
+<dt>Returns:</dt><dd><p>date or None: Parsed date when the value is valid; otherwise <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="load_data.clean_float">
+<span class="sig-prename descclassname"><span class="pre">load_data.</span></span><span class="sig-name descname"><span class="pre">clean_float</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#load_data.clean_float" title="Link to this definition"></a></dt>
+<dd><p>Convert an applicant value to a floating-point number.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>value: Value to convert.</p>
+</dd>
+<dt>Returns:</dt><dd><p>float or None: Converted numeric value. Missing values and values that
+cannot be converted are returned as <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="load_data.clean_text">
+<span class="sig-prename descclassname"><span class="pre">load_data.</span></span><span class="sig-name descname"><span class="pre">clean_text</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#load_data.clean_text" title="Link to this definition"></a></dt>
+<dd><p>Normalize a text value before database insertion.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>value: Value to normalize.</p>
+</dd>
+<dt>Returns:</dt><dd><p>str or None: Cleaned text value, or <code class="docutils literal notranslate"><span class="pre">None</span></code> when the value is missing
+or contains only whitespace.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="load_data.create_table">
+<span class="sig-prename descclassname"><span class="pre">load_data.</span></span><span class="sig-name descname"><span class="pre">create_table</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cursor</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#load_data.create_table" title="Link to this definition"></a></dt>
+<dd><p>Create the PostgreSQL <code class="docutils literal notranslate"><span class="pre">applicants</span></code> table when it does not already exist.</p>
+<p>The table follows the applicant schema used by the GradCafe analysis
+application. It includes a serial primary key and a unique URL field used
+to identify individual GradCafe applicant records.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>cursor: Active psycopg database cursor used to execute the table</dt><dd><p>creation statement.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="load_data.insert_applicant">
+<span class="sig-prename descclassname"><span class="pre">load_data.</span></span><span class="sig-name descname"><span class="pre">insert_applicant</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cursor</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">applicant</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#load_data.insert_applicant" title="Link to this definition"></a></dt>
+<dd><p>Insert one cleaned GradCafe applicant record into PostgreSQL.</p>
+<p>Builds the stored program name from the available university and program
+values, normalizes database fields, and inserts the applicant using the
+Module 3 database schema. The applicant URL provides the uniqueness
+constraint used to prevent duplicate GradCafe records from being stored.</p>
+<dl>
+<dt>Args:</dt><dd><p>cursor: Active psycopg database cursor used for the INSERT operation.
+applicant (dict): Cleaned applicant record containing the values to</p>
+<blockquote>
+<div><p>store in PostgreSQL.</p>
+</div></blockquote>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="load_data.load_data">
+<span class="sig-prename descclassname"><span class="pre">load_data.</span></span><span class="sig-name descname"><span class="pre">load_data</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#load_data.load_data" title="Link to this definition"></a></dt>
+<dd><p>Load cleaned applicant records from a JSON file.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><p>filename (str): Path to the cleaned GradCafe JSON dataset.</p>
+</dd>
+<dt>Returns:</dt><dd><p>list: Applicant dictionaries read from the file.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="load_data.main">
+<span class="sig-prename descclassname"><span class="pre">load_data.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#load_data.main" title="Link to this definition"></a></dt>
+<dd><p>Load the cleaned GradCafe dataset into PostgreSQL.</p>
+<p>Reads the database name and user from the <code class="docutils literal notranslate"><span class="pre">DB_NAME</span></code> and <code class="docutils literal notranslate"><span class="pre">DB_USER</span></code>
+environment variables, loads the cleaned applicant JSON data, creates the
+<code class="docutils literal notranslate"><span class="pre">applicants</span></code> table when necessary, and inserts the applicant records.</p>
+<p>Database changes are committed after processing. Progress is reported
+during large loads.</p>
+<dl class="simple">
+<dt>Raises:</dt><dd><dl class="simple">
+<dt>RuntimeError: If the required database environment variables are not</dt><dd><p>configured.</p>
+</dd>
+</dl>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+<section id="raw-sql-queries">
+<h2>Raw SQL Queries<a class="headerlink" href="#raw-sql-queries" title="Link to this heading"></a></h2>
+<p>The <a class="reference internal" href="#module-query_data" title="query_data"><code class="xref py py-mod docutils literal notranslate"><span class="pre">query_data</span></code></a> module connects to PostgreSQL and performs the raw SQL
+analysis used by the GradCafe application.</p>
+<dl class="py function" id="module-query_data">
+<dt class="sig sig-object py" id="query_data.get_connection">
+<span class="sig-prename descclassname"><span class="pre">query_data.</span></span><span class="sig-name descname"><span class="pre">get_connection</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#query_data.get_connection" title="Link to this definition"></a></dt>
+<dd><p>Create a PostgreSQL connection using environment configuration.</p>
+<p>Reads <code class="docutils literal notranslate"><span class="pre">DB_NAME</span></code> and <code class="docutils literal notranslate"><span class="pre">DB_USER</span></code> from the environment and uses them to
+establish the psycopg connection used by the raw SQL analysis.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>psycopg.Connection: Open PostgreSQL connection.</p>
+</dd>
+<dt>Raises:</dt><dd><p>RuntimeError: If <code class="docutils literal notranslate"><span class="pre">DB_NAME</span></code> or <code class="docutils literal notranslate"><span class="pre">DB_USER</span></code> is not configured.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="query_data.main">
+<span class="sig-prename descclassname"><span class="pre">query_data.</span></span><span class="sig-name descname"><span class="pre">main</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#query_data.main" title="Link to this definition"></a></dt>
+<dd><p>Execute and display the GradCafe raw SQL analysis.</p>
+<p>Connects to PostgreSQL and executes the eleven analysis questions used by
+the GradCafe project. The analysis includes applicant counts, nationality
+percentages, GPA and GRE averages, acceptance percentages, Johns Hopkins
+Computer Science applicant counts, comparisons between original and
+LLM-generated fields, and the two Princeton Fall 2026 analyses.</p>
+<p>Percentage and average results are formatted for readable terminal output.
+PostgreSQL aggregate operations ignore missing values where appropriate,
+while GRE calculations restrict values to the valid ranges used by the
+analysis.</p>
+</dd></dl>
+
+</section>
+<section id="flask-application-and-routes">
+<h2>Flask Application and Routes<a class="headerlink" href="#flask-application-and-routes" title="Link to this heading"></a></h2>
+<p>The <code class="xref py py-mod docutils literal notranslate"><span class="pre">app</span></code> module implements the Flask web application and its routes.</p>
+<section id="application-factory">
+<h3>Application Factory<a class="headerlink" href="#application-factory" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.create_app">
+<span class="sig-prename descclassname"><span class="pre">app.</span></span><span class="sig-name descname"><span class="pre">create_app</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#app.create_app" title="Link to this definition"></a></dt>
+<dd><p>Create and configure the Flask application.</p>
+<p>Creates the Flask application, applies an optional configuration
+dictionary, and registers the analysis, Pull Data, and Update Analysis
+routes.</p>
+<dl class="simple">
+<dt>Args:</dt><dd><dl class="simple">
+<dt>test_config (dict, optional): Configuration values used to override</dt><dd><p>the application’s defaults, particularly during automated tests.</p>
+</dd>
+</dl>
+</dd>
+<dt>Returns:</dt><dd><p>Flask: Configured Flask application.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>The application factory creates and configures the Flask application and
+registers the application routes.</p>
+</section>
+<section id="analysis-page">
+<h3>Analysis Page<a class="headerlink" href="#analysis-page" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.index">
+<span class="sig-prename descclassname"><span class="pre">app.</span></span><span class="sig-name descname"><span class="pre">index</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#app.index" title="Link to this definition"></a></dt>
+<dd><p>Render the GradCafe analysis page.</p>
+<p>Retrieves the current SQLAlchemy analysis results and passes them to the
+Flask template along with the current Pull Data status. The optional
+<code class="docutils literal notranslate"><span class="pre">analysis_status</span></code> query parameter controls the status message displayed
+after an analysis refresh or while a data pull is running.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>Response: Rendered GradCafe analysis page.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>The analysis page displays the GradCafe analysis results. It is available
+through the application’s <code class="docutils literal notranslate"><span class="pre">/</span></code> and <code class="docutils literal notranslate"><span class="pre">/analysis</span></code> routes.</p>
+</section>
+<section id="pull-data">
+<h3>Pull Data<a class="headerlink" href="#pull-data" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.pull_data">
+<span class="sig-prename descclassname"><span class="pre">app.</span></span><span class="sig-name descname"><span class="pre">pull_data</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#app.pull_data" title="Link to this definition"></a></dt>
+<dd><p>Start a background GradCafe data pull.</p>
+<p>Attempts to acquire the application data-pull lock. If another pull is
+already running, the route returns HTTP 409 with <code class="docutils literal notranslate"><span class="pre">busy</span></code> set to true.</p>
+<p>When the application is available, the route marks the pull as running,
+starts <a class="reference internal" href="#app.run_data_pull" title="app.run_data_pull"><code class="xref py py-func docutils literal notranslate"><span class="pre">run_data_pull()</span></code></a> in a background thread, and immediately
+returns HTTP 202 so the web request does not wait for the complete ETL
+workflow.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>Response: JSON response with HTTP 202 when the pull starts, or HTTP
+409 when another pull is already running.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>The <code class="docutils literal notranslate"><span class="pre">/pull-data</span></code> route starts the workflow used to retrieve and process
+newly available GradCafe applicant data. The application prevents another
+data pull from starting while one is already running.</p>
+</section>
+<section id="update-analysis">
+<h3>Update Analysis<a class="headerlink" href="#update-analysis" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.update_analysis">
+<span class="sig-prename descclassname"><span class="pre">app.</span></span><span class="sig-name descname"><span class="pre">update_analysis</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#app.update_analysis" title="Link to this definition"></a></dt>
+<dd><p>Request an analysis refresh using the current PostgreSQL data.</p>
+<p>The analysis cannot be refreshed while a GradCafe data pull is running.
+In that case, the route returns HTTP 409 with <code class="docutils literal notranslate"><span class="pre">busy</span></code> set to true.
+Otherwise, it returns HTTP 200 so the client can refresh the analysis
+using the most current database contents.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>Response: JSON response with HTTP 200 when an update is available, or
+HTTP 409 while a data pull is in progress.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>The <code class="docutils literal notranslate"><span class="pre">/update-analysis</span></code> route refreshes the analysis using the applicant
+records currently stored in PostgreSQL. An update is prevented while a data
+pull is already in progress.</p>
+</section>
+<section id="analysis-results">
+<h3>Analysis Results<a class="headerlink" href="#analysis-results" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.get_analysis_results">
+<span class="sig-prename descclassname"><span class="pre">app.</span></span><span class="sig-name descname"><span class="pre">get_analysis_results</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#app.get_analysis_results" title="Link to this definition"></a></dt>
+<dd><p>Retrieve all GradCafe analysis results using SQLAlchemy.</p>
+<p>Executes the database queries required for Questions 1 through 11 on the
+analysis page. Results include applicant counts, international applicant
+percentages, GPA and GRE averages, acceptance percentages, field
+comparisons, and the Princeton Fall 2026 analyses.</p>
+<dl class="simple">
+<dt>Returns:</dt><dd><p>dict: Analysis results keyed by the question identifiers expected by
+the Flask analysis template.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p>This function retrieves the database analysis results used to populate the
+Flask analysis page.</p>
+</section>
+<section id="data-pull-workflow">
+<h3>Data Pull Workflow<a class="headerlink" href="#data-pull-workflow" title="Link to this heading"></a></h3>
+<dl class="py function">
+<dt class="sig sig-object py" id="app.run_data_pull">
+<span class="sig-prename descclassname"><span class="pre">app.</span></span><span class="sig-name descname"><span class="pre">run_data_pull</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#app.run_data_pull" title="Link to this definition"></a></dt>
+<dd><p>Run the complete Pull Data workflow in the background.</p>
+<p>Checks GradCafe for newly submitted applicant records. If new records are
+found, the function runs the existing cleaning pipeline and then executes
+the database loader to add the processed records to PostgreSQL.</p>
+<p>The shared pull status is updated throughout the workflow so the web
+interface can report whether records are being retrieved, processed, or
+loaded. Cleaning and database-loading failures are reported without
+starting a conflicting operation.</p>
+<p>The running status is cleared and the pull lock is released when the
+workflow finishes.</p>
+</dd></dl>
+
+<p>This function performs the background data-pull workflow used by the
+application.</p>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="architecture.html" class="btn btn-neutral float-left" title="Architecture" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="testing.html" class="btn btn-neutral float-right" title="Testing Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2026, Rachael Mends.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
