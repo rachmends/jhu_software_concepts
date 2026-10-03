@@ -61,7 +61,7 @@ def test_main_runs_all_orm_queries(
 
     monkeypatch.setattr(
         orm_queries,
-        "SessionLocal",
+        "SESSION_LOCAL",
         lambda: session_context,
     )
 
@@ -122,7 +122,7 @@ def test_main_handles_zero_percentage_denominators(
 
     monkeypatch.setattr(
         orm_queries,
-        "SessionLocal",
+        "SESSION_LOCAL",
         lambda: session_context,
     )
 
@@ -165,7 +165,7 @@ def test_orm_queries_script_entry_point(monkeypatch):
 
     monkeypatch.setattr(
         models,
-        "SessionLocal",
+        "SESSION_LOCAL",
         lambda: session_context,
     )
 

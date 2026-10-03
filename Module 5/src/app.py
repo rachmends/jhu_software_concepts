@@ -11,7 +11,7 @@ from flask import Flask, render_template, request, jsonify
 from sqlalchemy import select, func, or_
 from sqlalchemy.sql.functions import count
 
-from models import Applicant, SessionLocal
+from models import Applicant, SESSION_LOCAL
 from orm_queries import (
     accepted_princeton_average_gpa,
     american_fall_2026_average_gpa,
@@ -128,7 +128,7 @@ def johns_hopkins_cs_count(session):
 
 def get_analysis_results():
     """Retrieve all GradCafe analysis results using SQLAlchemy."""
-    with SessionLocal() as session:
+    with SESSION_LOCAL() as session:
         results = {
             "q1": fall_2026_applicant_count(session),
             "q2": international_percentage(session),

@@ -3,7 +3,7 @@
 from sqlalchemy import and_, func, or_, select
 from sqlalchemy.sql.functions import count
 
-from models import Applicant, SessionLocal
+from models import Applicant, SESSION_LOCAL
 
 
 def fall_2026_applicant_count(session):
@@ -208,7 +208,7 @@ def accepted_princeton_average_gpa(session):
 
 def main():
     """Run the ORM analysis queries and print their results."""
-    with SessionLocal() as session:
+    with SESSION_LOCAL() as session:
         fall_2026_count = fall_2026_applicant_count(session)
         american_average_gpa = american_fall_2026_average_gpa(session)
         fall_2025_percentage = fall_2025_acceptance_percentage(session)

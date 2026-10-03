@@ -30,7 +30,7 @@ class FakeSession:
 
 
 class SessionContext:
-    """Context manager returned by SessionLocal()."""
+    """Context manager returned by SESSION_LOCAL()."""
 
     def __init__(self, session):
         self.session = session
@@ -97,7 +97,7 @@ def test_get_analysis_results_with_data(monkeypatch):
 
     monkeypatch.setattr(
         app_module,
-        "SessionLocal",
+        "SESSION_LOCAL",
         lambda: session_context,
     )
 
@@ -154,7 +154,7 @@ def test_get_analysis_results_zero_denominators(
 
     monkeypatch.setattr(
         app_module,
-        "SessionLocal",
+        "SESSION_LOCAL",
         lambda: session_context,
     )
 

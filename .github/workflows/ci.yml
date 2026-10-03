@@ -92,11 +92,16 @@ jobs:
   pytest:
     name: Pytest
     runs-on: ubuntu-latest
+    env:
+      DB_HOST: localhost
+      DB_PORT: "5432"
+      DB_NAME: gradcafe
+      DB_USER: gradcafe_app
+      DB_PASSWORD: test_password
 
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:

@@ -82,7 +82,7 @@ class Applicant(Base):
 # Session configuration
 # ---------------------------------------------------------
 
-SessionLocal = sessionmaker(
+SESSION_LOCAL = sessionmaker(
     bind=engine,
     autoflush=False,
     expire_on_commit=False
