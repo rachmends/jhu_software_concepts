@@ -1,0 +1,9 @@
+Flask
+SQLAlchemy
+psycopg[binary]
+beautifulsoup4
+urllib3
+pytest
+pytest-cov
+sphinx
+sphinx-rtd-theme
