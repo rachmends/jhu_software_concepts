@@ -14,8 +14,11 @@ def test_models_missing_database_environment(monkeypatch):
     """models.py raises an error when database configuration is missing."""
 
     monkeypatch.delenv("DATABASE_URL", raising=False)
+    monkeypatch.delenv("DB_HOST", raising=False)
+    monkeypatch.delenv("DB_PORT", raising=False)
     monkeypatch.delenv("DB_NAME", raising=False)
     monkeypatch.delenv("DB_USER", raising=False)
+    monkeypatch.delenv("DB_PASSWORD", raising=False)
 
     models_path = SRC_DIR / "models.py"
 

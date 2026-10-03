@@ -217,6 +217,9 @@ def test_insert_applicant_program_name_branches():
 
 @pytest.mark.db
 def test_main_missing_database_environment(monkeypatch):
+    monkeypatch.delenv("DB_HOST", raising=False)
+    monkeypatch.delenv("DB_PORT", raising=False)
+
     monkeypatch.delenv(
         "DB_NAME",
         raising=False,
@@ -226,6 +229,8 @@ def test_main_missing_database_environment(monkeypatch):
         "DB_USER",
         raising=False,
     )
+
+    monkeypatch.delenv("DB_PASSWORD", raising=False)
 
     with pytest.raises(
         RuntimeError,
@@ -236,6 +241,9 @@ def test_main_missing_database_environment(monkeypatch):
 
 @pytest.mark.db
 def test_main_loads_records(monkeypatch):
+    monkeypatch.setenv("DB_HOST", "localhost")
+    monkeypatch.setenv("DB_PORT", "5432")
+
     monkeypatch.setenv(
         "DB_NAME",
         "test_database",
@@ -245,6 +253,8 @@ def test_main_loads_records(monkeypatch):
         "DB_USER",
         "test_user",
     )
+
+    monkeypatch.setenv("DB_PASSWORD", "test_password")
 
     applicants = [
         {
@@ -265,8 +275,8 @@ def test_main_loads_records(monkeypatch):
 
     connect_calls = []
 
-    def fake_connect(connection_string):
-        connect_calls.append(connection_string)
+    def fake_connect(**kwargs):
+        connect_calls.append(kwargs)
         return connection_context
 
     monkeypatch.setattr(
@@ -284,13 +294,19 @@ def test_main_loads_records(monkeypatch):
     load_data.main()
 
     assert connect_calls == [
-        "dbname=test_database user=test_user"
+        {
+            "host": "localhost",
+            "port": "5432",
+            "dbname": "test_database",
+            "user": "test_user",
+            "password": "test_password",
+        }
     ]
 
     assert connection.commit_count == 1
 
-    # create_table once + two INSERT statements
-    assert len(cursor.calls) == 3
+    # Two applicant INSERT statements
+    assert len(cursor.calls) == 2
 
 
 @pytest.mark.db
@@ -298,6 +314,9 @@ def test_main_progress_message(
     monkeypatch,
     capsys,
 ):
+    monkeypatch.setenv("DB_HOST", "localhost")
+    monkeypatch.setenv("DB_PORT", "5432")
+
     monkeypatch.setenv(
         "DB_NAME",
         "test_database",
@@ -307,6 +326,8 @@ def test_main_progress_message(
         "DB_USER",
         "test_user",
     )
+
+    monkeypatch.setenv("DB_PASSWORD", "test_password")
 
     # Exactly 1000 records forces:
     # if processed % 1000 == 0
@@ -332,7 +353,7 @@ def test_main_progress_message(
     monkeypatch.setattr(
         load_data.psycopg,
         "connect",
-        lambda connection_string: connection_context,
+        lambda **kwargs: connection_context,
     )
 
     load_data.main()
@@ -346,8 +367,8 @@ def test_main_progress_message(
 
     assert connection.commit_count == 1
 
-    # create_table + 1000 inserts
-    assert len(cursor.calls) == 1001
+    # 1000 applicant INSERT statements
+    assert len(cursor.calls) == 1000
 
 
 # ============================================================
@@ -360,6 +381,9 @@ def test_load_data_script_entry_point(
     monkeypatch,
     tmp_path,
 ):
+    monkeypatch.setenv("DB_HOST", "localhost")
+    monkeypatch.setenv("DB_PORT", "5432")
+
     monkeypatch.setenv(
         "DB_NAME",
         "test_database",
@@ -369,6 +393,8 @@ def test_load_data_script_entry_point(
         "DB_USER",
         "test_user",
     )
+
+    monkeypatch.setenv("DB_PASSWORD", "test_password")
 
     # load_data.py expects this filename when run directly.
     data_file = (
@@ -402,5 +428,5 @@ def test_load_data_script_entry_point(
 
     assert connection.commit_count == 1
 
-    # Even with no applicants, create_table() should execute.
-    assert len(cursor.calls) == 1
+    # No applicant records means no INSERT statements execute.
+    assert len(cursor.calls) == 0

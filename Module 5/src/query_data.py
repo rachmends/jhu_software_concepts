@@ -1,32 +1,14 @@
 """Analyze GradCafe applicant data using PostgreSQL queries."""
 
-import os
-
 import psycopg
 from psycopg import sql
+
+from db_config import get_database_config
 
 
 def get_connection():
     """Create a PostgreSQL connection using environment configuration."""
-    connection_config = {
-        "dbname": os.getenv("DB_NAME"),
-        "user": os.getenv("DB_USER"),
-    }
-
-    missing_settings = [
-        name
-        for name, value in connection_config.items()
-        if not value
-    ]
-
-    if missing_settings:
-        missing_names = ", ".join(missing_settings)
-        raise RuntimeError(
-            "Database connection information is missing: "
-            f"{missing_names}."
-        )
-
-    return psycopg.connect(**connection_config)
+    return psycopg.connect(**get_database_config())
 
 
 MAX_QUERY_LIMIT = 100

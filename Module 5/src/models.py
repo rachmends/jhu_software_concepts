@@ -6,6 +6,8 @@ from datetime import date
 from sqlalchemy import create_engine, Float, Integer, Text, Date
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
+from db_config import get_database_config
+
 
 # ---------------------------------------------------------
 # Database connection
@@ -14,17 +16,14 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 if not DATABASE_URL:
-    db_name = os.getenv("DB_NAME")
-    db_user = os.getenv("DB_USER")
+    database_config = get_database_config()
+    DATABASE_URL = (
+        "postgresql+psycopg://"
+        f"{database_config['user']}:{database_config['password']}"
+        f"@{database_config['host']}:{database_config['port']}"
+        f"/{database_config['dbname']}"
+    )
 
-    if not db_name or not db_user:
-        raise RuntimeError(
-            "Database connection information is missing. "
-            "Set DATABASE_URL or DB_NAME and DB_USER "
-            "as environment variables."
-        )
-
-    DATABASE_URL = f"postgresql+psycopg://{db_user}@/{db_name}"
 
 engine = create_engine(DATABASE_URL)
 

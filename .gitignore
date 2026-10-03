@@ -23,3 +23,6 @@ Module 3/llm_hosting/models/
 # Python cache files
 __pycache__/
 *.pyc
+
+# Commit the safe environment template
+!.env.example

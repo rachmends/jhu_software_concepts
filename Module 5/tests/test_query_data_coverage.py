@@ -66,8 +66,11 @@ def make_fake_connection(results):
 def test_get_connection_uses_environment_variables(
     monkeypatch,
 ):
+    monkeypatch.setenv("DB_HOST", "localhost")
+    monkeypatch.setenv("DB_PORT", "5432")
     monkeypatch.setenv("DB_NAME", "test_database")
     monkeypatch.setenv("DB_USER", "test_user")
+    monkeypatch.setenv("DB_PASSWORD", "test_password")
 
     received = {}
 
@@ -84,8 +87,11 @@ def test_get_connection_uses_environment_variables(
     query_data.get_connection()
 
     assert received == {
+        "host": "localhost",
+        "port": "5432",
         "dbname": "test_database",
         "user": "test_user",
+        "password": "test_password",
     }
 
 
@@ -93,8 +99,11 @@ def test_get_connection_uses_environment_variables(
 def test_get_connection_missing_database_environment(
     monkeypatch,
 ):
+    monkeypatch.delenv("DB_HOST", raising=False)
+    monkeypatch.delenv("DB_PORT", raising=False)
     monkeypatch.delenv("DB_NAME", raising=False)
     monkeypatch.delenv("DB_USER", raising=False)
+    monkeypatch.delenv("DB_PASSWORD", raising=False)
 
     with pytest.raises(
         RuntimeError,
@@ -185,8 +194,11 @@ def test_main_runs_all_raw_sql_queries(
 
 @pytest.mark.db
 def test_query_data_script_entry_point(monkeypatch):
+    monkeypatch.setenv("DB_HOST", "localhost")
+    monkeypatch.setenv("DB_PORT", "5432")
     monkeypatch.setenv("DB_NAME", "test_database")
     monkeypatch.setenv("DB_USER", "test_user")
+    monkeypatch.setenv("DB_PASSWORD", "test_password")
 
     fake_cursor, connection_context = (
         make_fake_connection(

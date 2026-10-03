@@ -1,11 +1,12 @@
 """Load cleaned GradCafe applicant data into PostgreSQL."""
 
 import json
-import os
 from datetime import datetime
 
 import psycopg
 from psycopg import sql
+
+from db_config import get_database_config
 
 
 DATA_FILE = "llm_extend_applicant_data.json"
@@ -224,13 +225,12 @@ def insert_applicant(cursor, applicant):
 
 
 def main():
-
     """
     Load the cleaned GradCafe dataset into PostgreSQL.
 
-    Reads the database name and user from the ``DB_NAME`` and ``DB_USER``
-    environment variables, loads the cleaned applicant JSON data, creates the
-    ``applicants`` table when necessary, and inserts the applicant records.
+    Reads PostgreSQL connection settings from environment variables,
+    loads the cleaned applicant JSON data, and inserts records into the
+    pre-provisioned ``applicants`` table using a least-privilege account.
 
     Database changes are committed after processing. Progress is reported
     during large loads.
@@ -239,17 +239,7 @@ def main():
         RuntimeError: If the required database environment variables are not
             configured.
     """
-
-    # Database credentials come from environment variables.
-    # Nothing secret is stored in this file.
-    db_name = os.getenv("DB_NAME")
-    db_user = os.getenv("DB_USER")
-
-    if not db_name or not db_user:
-        raise RuntimeError(
-            "Database connection information is missing. "
-            "Set DB_NAME and DB_USER as environment variables."
-        )
+    connection_config = get_database_config()
 
     print(f"Reading {DATA_FILE}...")
 
@@ -257,25 +247,14 @@ def main():
 
     print(f"Found {len(applicants):,} applicant records.")
 
-    connection_string = (
-        f"dbname={db_name} "
-        f"user={db_user}"
-    )
-
-    with psycopg.connect(connection_string) as connection:
-
+    with psycopg.connect(**connection_config) as connection:
         with connection.cursor() as cursor:
-
-            print("Creating applicants table if necessary...")
-            create_table(cursor)
-
             print("Loading applicant data into PostgreSQL...")
 
             inserted = 0
             processed = 0
 
             for applicant in applicants:
-
                 insert_applicant(cursor, applicant)
 
                 processed += 1
