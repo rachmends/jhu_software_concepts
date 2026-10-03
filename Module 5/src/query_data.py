@@ -3,6 +3,7 @@
 import os
 
 import psycopg
+from psycopg import sql
 
 
 def get_connection():
@@ -28,9 +29,18 @@ def get_connection():
     return psycopg.connect(**connection_config)
 
 
-def fetch_one(cursor, query):
-    """Execute a query and return its first result row."""
-    cursor.execute(query)
+MAX_QUERY_LIMIT = 100
+
+
+def clamp_limit(limit):
+    """Clamp a query result limit to the permitted range of 1 through 100."""
+    return max(1, min(int(limit), MAX_QUERY_LIMIT))
+
+
+def fetch_one(cursor, statement, params=(), limit=MAX_QUERY_LIMIT):
+    """Execute a bounded parameterized query and return its first result row."""
+    bounded_limit = clamp_limit(limit)
+    cursor.execute(statement, (*params, bounded_limit))
     return cursor.fetchone()
 
 
@@ -42,242 +52,334 @@ def print_result(question, label, value, format_spec="", suffix=""):
     print()
 
 
-def question_1(cursor):
+def question_1(cursor, limit=MAX_QUERY_LIMIT):
     """Return the number of Fall 2026 applicant entries."""
-    row = fetch_one(
-        cursor,
-        """
+    statement = sql.SQL("""
         SELECT COUNT(*)
-        FROM applicants
-        WHERE LOWER(TRIM(term)) = 'fall 2026';
-        """,
+        FROM {}
+        WHERE LOWER(TRIM({})) = %s
+        LIMIT %s
+    """).format(
+        sql.Identifier("applicants"),
+        sql.Identifier("term"),
     )
+    row = fetch_one(cursor, statement, ("fall 2026",), limit)
     return row[0]
 
 
-def question_2(cursor):
+def question_2(cursor, limit=MAX_QUERY_LIMIT):
     """Return the percentage of classified applicants who are international."""
-    row = fetch_one(
-        cursor,
-        """
+    statement = sql.SQL("""
         SELECT
             100.0 *
             COUNT(*) FILTER (
-                WHERE LOWER(TRIM(us_or_international))
-                      NOT IN ('american', 'other')
+                WHERE LOWER(TRIM({})) NOT IN (%s, %s)
             )
             /
             NULLIF(
                 COUNT(*) FILTER (
-                    WHERE us_or_international IS NOT NULL
-                      AND TRIM(us_or_international) <> ''
+                    WHERE {} IS NOT NULL
+                      AND TRIM({}) <> %s
                 ),
                 0
             )
-        FROM applicants;
-        """,
+        FROM {}
+        LIMIT %s
+    """).format(
+        sql.Identifier("us_or_international"),
+        sql.Identifier("us_or_international"),
+        sql.Identifier("us_or_international"),
+        sql.Identifier("applicants"),
     )
+    params = ("american", "other", "")
+    row = fetch_one(cursor, statement, params, limit)
     return row[0]
 
 
-def question_3(cursor):
+def question_3(cursor, limit=MAX_QUERY_LIMIT):
     """Return average GPA and valid GRE metrics."""
-    return fetch_one(
-        cursor,
-        """
+    statement = sql.SQL("""
         SELECT
-            AVG(gpa),
-            AVG(gre) FILTER (
-                WHERE gre BETWEEN 130 AND 170
+            AVG({}),
+            AVG({}) FILTER (
+                WHERE {} BETWEEN %s AND %s
             ),
-            AVG(gre_v) FILTER (
-                WHERE gre_v BETWEEN 130 AND 170
+            AVG({}) FILTER (
+                WHERE {} BETWEEN %s AND %s
             ),
-            AVG(gre_aw) FILTER (
-                WHERE gre_aw BETWEEN 0.0 AND 6.0
+            AVG({}) FILTER (
+                WHERE {} BETWEEN %s AND %s
             )
-        FROM applicants;
-        """,
+        FROM {}
+        LIMIT %s
+    """).format(
+        sql.Identifier("gpa"),
+        sql.Identifier("gre"),
+        sql.Identifier("gre"),
+        sql.Identifier("gre_v"),
+        sql.Identifier("gre_v"),
+        sql.Identifier("gre_aw"),
+        sql.Identifier("gre_aw"),
+        sql.Identifier("applicants"),
     )
+    params = (130, 170, 130, 170, 0.0, 6.0)
+    return fetch_one(cursor, statement, params, limit)
 
 
-def question_4(cursor):
+def question_4(cursor, limit=MAX_QUERY_LIMIT):
     """Return average GPA of American Fall 2026 applicants."""
-    row = fetch_one(
-        cursor,
-        """
-        SELECT AVG(gpa)
-        FROM applicants
-        WHERE LOWER(TRIM(term)) = 'fall 2026'
-          AND LOWER(TRIM(us_or_international)) = 'american'
-          AND gpa IS NOT NULL;
-        """,
+    statement = sql.SQL("""
+        SELECT AVG({})
+        FROM {}
+        WHERE LOWER(TRIM({})) = %s
+          AND LOWER(TRIM({})) = %s
+          AND {} IS NOT NULL
+        LIMIT %s
+    """).format(
+        sql.Identifier("gpa"),
+        sql.Identifier("applicants"),
+        sql.Identifier("term"),
+        sql.Identifier("us_or_international"),
+        sql.Identifier("gpa"),
     )
+    params = ("fall 2026", "american")
+    row = fetch_one(cursor, statement, params, limit)
     return row[0]
 
 
-def question_5(cursor):
+def question_5(cursor, limit=MAX_QUERY_LIMIT):
     """Return the Fall 2025 acceptance percentage."""
-    row = fetch_one(
-        cursor,
-        """
+    statement = sql.SQL("""
         SELECT
             100.0 *
             COUNT(*) FILTER (
-                WHERE LOWER(TRIM(status)) LIKE 'accept%'
+                WHERE LOWER(TRIM({})) LIKE %s
             )
             /
             NULLIF(COUNT(*), 0)
-        FROM applicants
-        WHERE LOWER(TRIM(term)) = 'fall 2025';
-        """,
+        FROM {}
+        WHERE LOWER(TRIM({})) = %s
+        LIMIT %s
+    """).format(
+        sql.Identifier("status"),
+        sql.Identifier("applicants"),
+        sql.Identifier("term"),
     )
+    params = ("accept%", "fall 2025")
+    row = fetch_one(cursor, statement, params, limit)
     return row[0]
 
 
-def question_6(cursor):
+def question_6(cursor, limit=MAX_QUERY_LIMIT):
     """Return average GPA of accepted Fall 2026 applicants."""
-    row = fetch_one(
-        cursor,
-        """
-        SELECT AVG(gpa)
-        FROM applicants
-        WHERE LOWER(TRIM(term)) = 'fall 2026'
-          AND LOWER(TRIM(status)) LIKE 'accept%'
-          AND gpa IS NOT NULL;
-        """,
+    statement = sql.SQL("""
+        SELECT AVG({})
+        FROM {}
+        WHERE LOWER(TRIM({})) = %s
+          AND LOWER(TRIM({})) LIKE %s
+          AND {} IS NOT NULL
+        LIMIT %s
+    """).format(
+        sql.Identifier("gpa"),
+        sql.Identifier("applicants"),
+        sql.Identifier("term"),
+        sql.Identifier("status"),
+        sql.Identifier("gpa"),
     )
+    params = ("fall 2026", "accept%")
+    row = fetch_one(cursor, statement, params, limit)
     return row[0]
 
 
-def question_7(cursor):
+def question_7(cursor, limit=MAX_QUERY_LIMIT):
     """Return the Johns Hopkins master's Computer Science applicant count."""
-    row = fetch_one(
-        cursor,
-        """
+    statement = sql.SQL("""
         SELECT COUNT(*)
-        FROM applicants
+        FROM {}
         WHERE (
-                LOWER(program) LIKE '%johns hopkins%'
-                OR LOWER(program) LIKE '%jhu%'
+                LOWER({}) LIKE %s
+                OR LOWER({}) LIKE %s
               )
-          AND LOWER(program) LIKE '%computer science%'
+          AND LOWER({}) LIKE %s
           AND (
-                LOWER(TRIM(degree)) IN (
-                    'ms',
-                    'm.s.',
-                    'msc',
-                    'm.sc.',
-                    'master',
-                    'masters',
-                    'master''s'
+                LOWER(TRIM({})) IN (
+                    %s, %s, %s, %s, %s, %s, %s
                 )
-                OR LOWER(degree) LIKE '%master%'
-              );
-        """,
+                OR LOWER({}) LIKE %s
+              )
+        LIMIT %s
+    """).format(
+        sql.Identifier("applicants"),
+        sql.Identifier("program"),
+        sql.Identifier("program"),
+        sql.Identifier("program"),
+        sql.Identifier("degree"),
+        sql.Identifier("degree"),
     )
+    params = (
+        "%johns hopkins%",
+        "%jhu%",
+        "%computer science%",
+        "ms",
+        "m.s.",
+        "msc",
+        "m.sc.",
+        "master",
+        "masters",
+        "master's",
+        "%master%",
+    )
+    row = fetch_one(cursor, statement, params, limit)
     return row[0]
 
 
-def question_8(cursor):
+def question_8(cursor, limit=MAX_QUERY_LIMIT):
     """Return the original-field count for accepted Fall 2026 CS PhDs."""
-    row = fetch_one(
-        cursor,
-        """
+    statement = sql.SQL("""
         SELECT COUNT(*)
-        FROM applicants
-        WHERE LOWER(TRIM(term)) = 'fall 2026'
-          AND LOWER(TRIM(status)) LIKE 'accept%'
+        FROM {}
+        WHERE LOWER(TRIM({})) = %s
+          AND LOWER(TRIM({})) LIKE %s
           AND (
-                LOWER(TRIM(degree)) IN (
-                    'phd',
-                    'ph.d.',
-                    'ph.d'
-                )
-                OR LOWER(degree) LIKE '%doctor%'
+                LOWER(TRIM({})) IN (%s, %s, %s)
+                OR LOWER({}) LIKE %s
               )
-          AND LOWER(program) LIKE '%computer science%'
+          AND LOWER({}) LIKE %s
           AND (
-                LOWER(program) LIKE '%georgetown%'
-                OR LOWER(program) LIKE
-                    '%massachusetts institute of technology%'
-                OR LOWER(program) LIKE '%mit%'
-                OR LOWER(program) LIKE '%stanford%'
-                OR LOWER(program) LIKE '%carnegie mellon%'
-              );
-        """,
+                LOWER({}) LIKE %s
+                OR LOWER({}) LIKE %s
+                OR LOWER({}) LIKE %s
+                OR LOWER({}) LIKE %s
+                OR LOWER({}) LIKE %s
+              )
+        LIMIT %s
+    """).format(
+        sql.Identifier("applicants"),
+        sql.Identifier("term"),
+        sql.Identifier("status"),
+        sql.Identifier("degree"),
+        sql.Identifier("degree"),
+        sql.Identifier("program"),
+        sql.Identifier("program"),
+        sql.Identifier("program"),
+        sql.Identifier("program"),
+        sql.Identifier("program"),
+        sql.Identifier("program"),
     )
+    params = (
+        "fall 2026",
+        "accept%",
+        "phd",
+        "ph.d.",
+        "ph.d",
+        "%doctor%",
+        "%computer science%",
+        "%georgetown%",
+        "%massachusetts institute of technology%",
+        "%mit%",
+        "%stanford%",
+        "%carnegie mellon%",
+    )
+    row = fetch_one(cursor, statement, params, limit)
     return row[0]
 
 
-def question_9(cursor):
+def question_9(cursor, limit=MAX_QUERY_LIMIT):
     """Return the LLM-field count for accepted Fall 2026 CS PhDs."""
-    row = fetch_one(
-        cursor,
-        """
+    statement = sql.SQL("""
         SELECT COUNT(*)
-        FROM applicants
-        WHERE LOWER(TRIM(term)) = 'fall 2026'
-          AND LOWER(TRIM(status)) LIKE 'accept%'
+        FROM {}
+        WHERE LOWER(TRIM({})) = %s
+          AND LOWER(TRIM({})) LIKE %s
           AND (
-                LOWER(TRIM(degree)) IN (
-                    'phd',
-                    'ph.d.',
-                    'ph.d'
-                )
-                OR LOWER(degree) LIKE '%doctor%'
+                LOWER(TRIM({})) IN (%s, %s, %s)
+                OR LOWER({}) LIKE %s
               )
-          AND LOWER(llm_generated_program)
-              LIKE '%computer science%'
+          AND LOWER({}) LIKE %s
           AND (
-                LOWER(llm_generated_university)
-                    LIKE '%georgetown%'
-                OR LOWER(llm_generated_university)
-                    LIKE '%massachusetts institute of technology%'
-                OR LOWER(llm_generated_university) = 'mit'
-                OR LOWER(llm_generated_university)
-                    LIKE '%stanford%'
-                OR LOWER(llm_generated_university)
-                    LIKE '%carnegie mellon%'
-              );
-        """,
+                LOWER({}) LIKE %s
+                OR LOWER({}) LIKE %s
+                OR LOWER({}) = %s
+                OR LOWER({}) LIKE %s
+                OR LOWER({}) LIKE %s
+              )
+        LIMIT %s
+    """).format(
+        sql.Identifier("applicants"),
+        sql.Identifier("term"),
+        sql.Identifier("status"),
+        sql.Identifier("degree"),
+        sql.Identifier("degree"),
+        sql.Identifier("llm_generated_program"),
+        sql.Identifier("llm_generated_university"),
+        sql.Identifier("llm_generated_university"),
+        sql.Identifier("llm_generated_university"),
+        sql.Identifier("llm_generated_university"),
+        sql.Identifier("llm_generated_university"),
     )
+    params = (
+        "fall 2026",
+        "accept%",
+        "phd",
+        "ph.d.",
+        "ph.d",
+        "%doctor%",
+        "%computer science%",
+        "%georgetown%",
+        "%massachusetts institute of technology%",
+        "mit",
+        "%stanford%",
+        "%carnegie mellon%",
+    )
+    row = fetch_one(cursor, statement, params, limit)
     return row[0]
 
 
-def question_10(cursor):
+def question_10(cursor, limit=MAX_QUERY_LIMIT):
     """Return the Princeton Fall 2026 acceptance percentage."""
-    row = fetch_one(
-        cursor,
-        """
+    statement = sql.SQL("""
         SELECT
             100.0 *
             COUNT(*) FILTER (
-                WHERE LOWER(TRIM(status)) LIKE 'accept%'
+                WHERE LOWER(TRIM({})) LIKE %s
             )
             /
             NULLIF(COUNT(*), 0)
-        FROM applicants
-        WHERE LOWER(TRIM(term)) = 'fall 2026'
-          AND LOWER(program) LIKE '%princeton%';
-        """,
+        FROM {}
+        WHERE LOWER(TRIM({})) = %s
+          AND LOWER({}) LIKE %s
+        LIMIT %s
+    """).format(
+        sql.Identifier("status"),
+        sql.Identifier("applicants"),
+        sql.Identifier("term"),
+        sql.Identifier("program"),
     )
+    params = ("accept%", "fall 2026", "%princeton%")
+    row = fetch_one(cursor, statement, params, limit)
     return row[0]
 
 
-def question_11(cursor):
+def question_11(cursor, limit=MAX_QUERY_LIMIT):
     """Return average GPA of accepted Princeton Fall 2026 applicants."""
-    row = fetch_one(
-        cursor,
-        """
-        SELECT AVG(gpa)
-        FROM applicants
-        WHERE LOWER(TRIM(term)) = 'fall 2026'
-          AND LOWER(program) LIKE '%princeton%'
-          AND LOWER(TRIM(status)) LIKE 'accept%'
-          AND gpa IS NOT NULL;
-        """,
+    statement = sql.SQL("""
+        SELECT AVG({})
+        FROM {}
+        WHERE LOWER(TRIM({})) = %s
+          AND LOWER({}) LIKE %s
+          AND LOWER(TRIM({})) LIKE %s
+          AND {} IS NOT NULL
+        LIMIT %s
+    """).format(
+        sql.Identifier("gpa"),
+        sql.Identifier("applicants"),
+        sql.Identifier("term"),
+        sql.Identifier("program"),
+        sql.Identifier("status"),
+        sql.Identifier("gpa"),
     )
+    params = ("fall 2026", "%princeton%", "accept%")
+    row = fetch_one(cursor, statement, params, limit)
     return row[0]
 
 

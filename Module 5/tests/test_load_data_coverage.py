@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from psycopg import sql as psycopg_sql
 
 
 SRC_DIR = Path(__file__).resolve().parents[1] / "src"
@@ -15,6 +16,13 @@ import load_data
 # PYTEST-NATIVE FAKES
 # ============================================================
 
+
+def render_sql(statement):
+    """Render psycopg composable SQL for test inspection."""
+    if isinstance(statement, psycopg_sql.Composable):
+        return statement.as_string()
+
+    return str(statement)
 
 class FakeCursor:
     """Small fake psycopg cursor for deterministic tests."""
@@ -126,11 +134,12 @@ def test_create_table_executes_create_statement():
 
     assert len(cursor.calls) == 1
 
-    sql = cursor.calls[0][0]
+    statement = cursor.calls[0][0]
+    sql_text = render_sql(statement)
 
-    assert "CREATE TABLE IF NOT EXISTS applicants" in sql
-    assert "p_id SERIAL PRIMARY KEY" in sql
-    assert "url TEXT UNIQUE" in sql
+    assert 'CREATE TABLE IF NOT EXISTS "applicants"' in sql_text
+    assert '"p_id" SERIAL PRIMARY KEY' in sql_text
+    assert '"url" TEXT UNIQUE' in sql_text
 
 
 # ============================================================

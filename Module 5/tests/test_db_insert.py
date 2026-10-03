@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 
 import pytest
+from psycopg import sql as psycopg_sql
 
 
 # ---------------------------------------------------------
@@ -23,6 +24,13 @@ from load_data import (
 # Fake database cursor
 # ---------------------------------------------------------
 
+def render_sql(statement):
+    """Render psycopg composable SQL for test inspection."""
+    if isinstance(statement, psycopg_sql.Composable):
+        return statement.as_string()
+
+    return str(statement)
+
 class FakeCursor:
     """
     Small test double for a PostgreSQL cursor.
@@ -42,11 +50,12 @@ class FakeCursor:
     def fetchone(self):
         return self.query_result
 
-    def execute(self, sql, params=None):
-        self.executions.append((sql, params))
+    def execute(self, statement, params=None):
+        sql_text = render_sql(statement)
+        self.executions.append((sql_text, params))
 
         # SELECT query
-        if sql.strip().upper().startswith("SELECT"):
+        if sql_text.strip().upper().startswith("SELECT"):
             if self.rows:
                 self.query_result = self.rows[0]
 
@@ -135,8 +144,8 @@ def test_insert_applicant_writes_record(applicant):
 
     sql, params = cursor.executions[0]
 
-    assert "INSERT INTO applicants" in sql
-    assert "ON CONFLICT (url) DO NOTHING" in sql
+    assert 'INSERT INTO "applicants"' in sql
+    assert 'ON CONFLICT ("url") DO NOTHING' in sql
 
     assert params[0] == (
         "Johns Hopkins University - Computer Science"

@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 
 import psycopg
+from psycopg import sql
 
 
 DATA_FILE = "llm_extend_applicant_data.json"
@@ -96,25 +97,43 @@ def create_table(cursor):
             creation statement.
     """
 
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS applicants (
-            p_id SERIAL PRIMARY KEY,
-            program TEXT,
-            comments TEXT,
-            date_added DATE,
-            url TEXT UNIQUE,
-            status TEXT,
-            term TEXT,
-            us_or_international TEXT,
-            gpa DOUBLE PRECISION,
-            gre DOUBLE PRECISION,
-            gre_v DOUBLE PRECISION,
-            gre_aw DOUBLE PRECISION,
-            degree TEXT,
-            llm_generated_program TEXT,
-            llm_generated_university TEXT
-        );
-    """)
+    statement = sql.SQL("""
+        CREATE TABLE IF NOT EXISTS {} (
+            {} SERIAL PRIMARY KEY,
+            {} TEXT,
+            {} TEXT,
+            {} DATE,
+            {} TEXT UNIQUE,
+            {} TEXT,
+            {} TEXT,
+            {} TEXT,
+            {} DOUBLE PRECISION,
+            {} DOUBLE PRECISION,
+            {} DOUBLE PRECISION,
+            {} DOUBLE PRECISION,
+            {} TEXT,
+            {} TEXT,
+            {} TEXT
+        )
+    """).format(
+        sql.Identifier("applicants"),
+        sql.Identifier("p_id"),
+        sql.Identifier("program"),
+        sql.Identifier("comments"),
+        sql.Identifier("date_added"),
+        sql.Identifier("url"),
+        sql.Identifier("status"),
+        sql.Identifier("term"),
+        sql.Identifier("us_or_international"),
+        sql.Identifier("gpa"),
+        sql.Identifier("gre"),
+        sql.Identifier("gre_v"),
+        sql.Identifier("gre_aw"),
+        sql.Identifier("degree"),
+        sql.Identifier("llm_generated_program"),
+        sql.Identifier("llm_generated_university"),
+    )
+    cursor.execute(statement)
 
 
 def insert_applicant(cursor, applicant):
@@ -142,30 +161,49 @@ def insert_applicant(cursor, applicant):
     else:
         full_program = university or program
 
-    cursor.execute(
-        """
-        INSERT INTO applicants (
-            program,
-            comments,
-            date_added,
-            url,
-            status,
-            term,
-            us_or_international,
-            gpa,
-            gre,
-            gre_v,
-            gre_aw,
-            degree,
-            llm_generated_program,
-            llm_generated_university
+    statement = sql.SQL("""
+        INSERT INTO {} (
+            {},
+            {},
+            {},
+            {},
+            {},
+            {},
+            {},
+            {},
+            {},
+            {},
+            {},
+            {},
+            {},
+            {}
         )
         VALUES (
             %s, %s, %s, %s, %s, %s, %s,
             %s, %s, %s, %s, %s, %s, %s
         )
-        ON CONFLICT (url) DO NOTHING;
-        """,
+        ON CONFLICT ({}) DO NOTHING
+    """).format(
+        sql.Identifier("applicants"),
+        sql.Identifier("program"),
+        sql.Identifier("comments"),
+        sql.Identifier("date_added"),
+        sql.Identifier("url"),
+        sql.Identifier("status"),
+        sql.Identifier("term"),
+        sql.Identifier("us_or_international"),
+        sql.Identifier("gpa"),
+        sql.Identifier("gre"),
+        sql.Identifier("gre_v"),
+        sql.Identifier("gre_aw"),
+        sql.Identifier("degree"),
+        sql.Identifier("llm_generated_program"),
+        sql.Identifier("llm_generated_university"),
+        sql.Identifier("url"),
+    )
+
+    cursor.execute(
+        statement,
         (
             full_program,
             clean_text(applicant.get("comments")),
