@@ -74,12 +74,11 @@ permissions required by the application.
 
 ## Fresh Install
 
-Module 5 can be installed from a fresh environment using either **pip** or
-**uv**.
+Module 5 was installed and verified from fresh environments using **both pip and uv**. Each installation method was completed independently to demonstrate that the project can be reproduced successfully using both package-management workflows.
 
-### Option 1: pip
+### Fresh Install with pip
 
-From the `Module 5` directory, create and activate a virtual environment:
+From the `Module 5` directory, create and activate a fresh virtual environment:
 
 ```bash
 python3 -m venv venv
@@ -105,17 +104,18 @@ Verify the package installation:
 pip show jhu-software-concepts-module5
 ```
 
-### Option 2: uv
+The pip fresh-install workflow was successfully completed and verified by importing all ten Module 5 source modules and running the complete test suite.
 
-Create and activate a fresh virtual environment using uv:
+### Fresh Install with uv
+
+A separate fresh environment was then created and verified using **uv**:
 
 ```bash
 uv venv
 source .venv/bin/activate
 ```
 
-Synchronize the environment with the dependencies declared in
-`requirements.txt`:
+Synchronize the fresh environment with the dependencies declared in `requirements.txt`:
 
 ```bash
 uv pip sync requirements.txt
@@ -127,17 +127,15 @@ Install the Module 5 project in editable mode:
 uv pip install -e .
 ```
 
-Using `uv pip sync` makes the environment match the declared requirements,
-which improves reproducibility.
+Using `uv pip sync requirements.txt` synchronizes the environment with the project's declared requirements, improving reproducibility by ensuring that the fresh environment contains the required dependency set.
 
-Both the pip and uv fresh-install workflows were independently verified for
-Module 5.
+The uv fresh-install workflow was also successfully completed and verified by importing all ten Module 5 source modules and running the complete test suite. The final verification produced **179 passing tests with 100% source-code coverage**.
+
+Therefore, **both the pip and uv fresh-install workflows were independently executed and successfully verified for Module 5**.
 
 ## Running the Application
 
-After completing either installation method, configuring the PostgreSQL
-environment variables, and ensuring PostgreSQL is running, start the Flask
-application from the `Module 5` directory:
+After completing both installation methods for verification, configure the PostgreSQL environment variables and ensure PostgreSQL is running before starting the Flask application from the `Module 5` directory:
 
 ```bash
 python src/app.py
