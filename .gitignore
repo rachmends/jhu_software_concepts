@@ -26,3 +26,23 @@ __pycache__/
 
 # Commit the safe environment template
 !.env.example
+
+# Python environments and caches
+**/venv/
+**/.venv/
+**/__pycache__/
+**/.pytest_cache/
+**/*.egg-info/
+**/.coverage
+**/htmlcov/
+
+# Environment secrets
+**/.env
+**/.env.*
+
+# Sphinx generated documentation
+**/docs/build/
+
+# macOS
+.DS_Store
+!**/.env.example
