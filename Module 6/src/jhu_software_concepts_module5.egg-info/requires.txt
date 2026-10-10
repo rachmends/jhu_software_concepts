@@ -1,0 +1,5 @@
+Flask
+SQLAlchemy
+psycopg[binary]
+beautifulsoup4
+urllib3
