@@ -62,7 +62,7 @@ class Applicant(Base):
     program: Mapped[str | None] = mapped_column(Text)
     comments: Mapped[str | None] = mapped_column(Text)
     date_added: Mapped[date | None] = mapped_column(Date)
-    url: Mapped[str | None] = mapped_column(Text)
+    url: Mapped[str | None] = mapped_column(Text, unique=True)
     status: Mapped[str | None] = mapped_column(Text)
     term: Mapped[str | None] = mapped_column(Text)
     us_or_international: Mapped[str | None] = mapped_column(Text)

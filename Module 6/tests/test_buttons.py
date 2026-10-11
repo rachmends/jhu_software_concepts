@@ -56,66 +56,77 @@ def reset_pull_state():
 
 
 @pytest.mark.buttons
-def test_pull_data_starts_when_not_busy(
-    client,
-    monkeypatch,
-):
-    """POST /pull-data should start a pull when the app is idle."""
-
-    FakeThread.created.clear()
-    FakeThread.started = 0
+def test_pull_data_starts_when_not_busy(client, monkeypatch):
+    """POST /pull-data queues an ingestion task."""
+    published = []
 
     monkeypatch.setattr(
-        app_module.threading,
-        "Thread",
-        FakeThread,
+        app_module,
+        "publish_task",
+        lambda **kwargs: published.append(kwargs),
     )
 
     response = client.post("/pull-data")
 
     assert response.status_code == 202
-    assert response.get_json() == {
-        "ok": True,
-        "busy": False,
-    }
-
-    assert len(FakeThread.created) == 1
-    assert FakeThread.started == 1
-
-    assert app_module.pull_status["running"] is True
+    assert response.get_json()["ok"] is True
+    assert published == [
+        {"kind": "scrape_new_data", "payload": {}}
+    ]
 
 
 @pytest.mark.buttons
-def test_update_analysis_when_not_busy(client):
-    """POST /update-analysis should succeed when no pull is running."""
+def test_update_analysis_when_not_busy(client, monkeypatch):
+    """POST /update-analysis queues an analytics task."""
+    published = []
+
+    monkeypatch.setattr(
+        app_module,
+        "publish_task",
+        lambda **kwargs: published.append(kwargs),
+    )
 
     response = client.post("/update-analysis")
 
-    assert response.status_code == 200
-    assert response.get_json() == {
-        "ok": True,
-        "busy": False,
-    }
+    assert response.status_code == 202
+    assert response.get_json()["ok"] is True
+    assert published == [
+        {"kind": "recompute_analytics", "payload": {}}
+    ]
 
 
 @pytest.mark.buttons
-def test_update_analysis_returns_409_when_busy(client):
-    """POST /update-analysis should be blocked during a data pull."""
+def test_update_analysis_returns_409_when_busy(client, monkeypatch):
+    """A local pull flag does not prevent analytics task publishing."""
+    published = []
+
+    monkeypatch.setattr(
+        app_module,
+        "publish_task",
+        lambda **kwargs: published.append(kwargs),
+    )
 
     app_module.pull_status["running"] = True
 
     response = client.post("/update-analysis")
 
-    assert response.status_code == 409
-    assert response.get_json() == {
-        "ok": False,
-        "busy": True,
-    }
+    assert response.status_code == 202
+    assert response.get_json()["ok"] is True
+    assert published == [
+        {"kind": "recompute_analytics", "payload": {}}
+    ]
 
 
 @pytest.mark.buttons
-def test_pull_data_returns_409_when_busy(client):
-    """A second POST /pull-data should be blocked while pulling."""
+def test_pull_data_returns_409_when_busy(client, monkeypatch):
+    """A local pull lock does not prevent queueing another task."""
+    published = []
+
+    monkeypatch.setattr(
+        app_module,
+        "publish_task",
+        lambda **kwargs: published.append(kwargs),
+    )
 
     acquired = app_module.pull_lock.acquire(blocking=False)
     assert acquired is True
@@ -124,8 +135,8 @@ def test_pull_data_returns_409_when_busy(client):
 
     response = client.post("/pull-data")
 
-    assert response.status_code == 409
-    assert response.get_json() == {
-        "ok": False,
-        "busy": True,
-    }
+    assert response.status_code == 202
+    assert response.get_json()["ok"] is True
+    assert published == [
+        {"kind": "scrape_new_data", "payload": {}}
+    ]

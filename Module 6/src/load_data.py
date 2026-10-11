@@ -224,39 +224,23 @@ def insert_applicant(cursor, applicant):
     )
 
 
-def main():
-    """
-    Load the cleaned GradCafe dataset into PostgreSQL.
-
-    Reads PostgreSQL connection settings from environment variables,
-    loads the cleaned applicant JSON data, and inserts records into the
-    pre-provisioned ``applicants`` table using a least-privilege account.
-
-    Database changes are committed after processing. Progress is reported
-    during large loads.
-
-    Raises:
-        RuntimeError: If the required database environment variables are not
-            configured.
-    """
+def main(connection=None):
+    """Load applicant records, optionally using a caller-owned transaction."""
     connection_config = get_database_config()
 
     print(f"Reading {DATA_FILE}...")
-
     applicants = load_data(DATA_FILE)
-
     print(f"Found {len(applicants):,} applicant records.")
 
-    with psycopg.connect(**connection_config) as connection:
-        with connection.cursor() as cursor:
+    def insert_records(active_connection):
+        """Insert records without committing a caller-owned connection."""
+        with active_connection.cursor() as cursor:
             print("Loading applicant data into PostgreSQL...")
-
             inserted = 0
             processed = 0
 
             for applicant in applicants:
                 insert_applicant(cursor, applicant)
-
                 processed += 1
                 inserted += cursor.rowcount
 
@@ -266,7 +250,14 @@ def main():
                         f"records..."
                     )
 
-        connection.commit()
+        return processed, inserted
+
+    if connection is None:
+        with psycopg.connect(**connection_config) as active_connection:
+            processed, inserted = insert_records(active_connection)
+            active_connection.commit()
+    else:
+        processed, inserted = insert_records(connection)
 
     print()
     print("Database load complete.")

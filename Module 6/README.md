@@ -1,4 +1,4 @@
-# Module 5: Software Assurance + Secure SQL
+# Module 6: Deploy Anywhere
 
 ## Name
 
@@ -7,348 +7,474 @@
 
 ## Module Info
 
-**Module:** Module 5  
-**Assignment:** Software Assurance + Secure SQL (SQLi Defense)  
-**Due Date:** October 4, 2026
+**Module:** Module 6  
+**Assignment:** Deploy Anywhere  
+**Due Date:** October 12, 2026
 
 ## Project Overview
 
-This application collects graduate admissions results from GradCafe, cleans and
-processes the applicant data, stores the records in PostgreSQL, and displays
-summary analyses through a Flask web application.
+The GradCafe application collects graduate admissions results, cleans and processes applicant data, stores records in PostgreSQL, and presents statistical analyses through a Flask web application.
 
-Module 5 extends the application with software assurance and secure SQL
-practices, including SQL injection defenses, parameterized queries, query
-limits, least-privilege database access, dependency analysis, reproducible
-environment configuration, packaging, and automated security checks.
+Module 6 extends the application from a locally executed Python project into a **containerized, asynchronous microservice architecture**. Docker Compose coordinates the Flask web application, PostgreSQL database, RabbitMQ message broker, and background worker as four independent services.
+
+The principal architectural improvement is the separation of HTTP request handling from time-consuming data-processing operations. Rather than executing a GradCafe scrape or recalculating database statistics directly within a Flask request, the web service publishes a task to RabbitMQ. A dedicated worker consumes that task and performs the requested operation independently.
+
+This approach allows the web interface to remain responsive while data processing occurs in the background. It also provides explicit message acknowledgment, database transaction handling, persistent storage, and a reproducible deployment environment.
 
 The application allows a user to:
 
-- View analyses of GradCafe admissions data.
-- Pull newly available GradCafe records.
-- Process and load new records into PostgreSQL.
-- Refresh the analysis using the latest data stored in the database.
+- View analyses of GradCafe graduate admissions data.
+- Submit a task to retrieve newly available applicant records.
+- Process and insert new records into PostgreSQL without duplicating existing records.
+- Recalculate and persist analytical summaries.
+- Observe task processing through worker logs and the RabbitMQ management interface.
 
 ## Requirements
 
-This project uses Python 3.11 and PostgreSQL.
+The containerized application requires Docker Desktop or Docker Engine with the Docker Compose plugin.
 
-The Python dependencies are declared in:
+For local development, automated testing, and documentation generation, the project uses Python 3.11.
 
-```text
-requirements.txt
-```
+The project declares dependencies in several files:
 
-The project uses packages including Flask, SQLAlchemy, psycopg, urllib3,
-Beautiful Soup, pytest, pytest-cov, Pylint, and pydeps.
+- `requirements.txt` — application and project dependencies.
+- `requirements-dev.txt` — development, testing, linting, and documentation dependencies.
+- `src/web/requirements.txt` — dependencies installed in the Flask web image.
+- `src/worker/requirements.txt` — dependencies installed in the background worker image.
 
-## PostgreSQL Setup
+The web and worker services use separate Dockerfiles so that each container installs the dependencies required for its responsibilities.
 
-PostgreSQL must be running before starting the application.
+## Docker Compose Architecture
 
-The application uses environment variables for the database connection. Set
-the following variables in your terminal:
+Docker Compose defines and coordinates four application services.
 
-```bash
-export DB_HOST=localhost
-export DB_PORT=5432
-export DB_NAME=gradcafe
-export DB_USER=gradcafe_app
-export DB_PASSWORD="your_database_password"
-```
+### Web Service
 
-The database used for this project is:
+The `web` service runs the Flask application and provides the GradCafe dashboard and analysis routes.
 
-```text
-gradcafe
-```
+It is responsible for receiving HTTP requests, rendering application pages, reading persisted analytics, and publishing background tasks to RabbitMQ.
 
-Database credentials are supplied through environment variables rather than
-stored in the application source code. The `.env.example` file documents the
-required environment variables. The real `.env` file is excluded from version
-control and should not be committed.
+The web service does not need to perform a complete scrape or analytics recalculation before returning a response. Instead, it publishes a task and returns HTTP `202 Accepted` when the request has been successfully queued.
 
-The `gradcafe_app` PostgreSQL role is the application's least-privilege
-database account. It is not a PostgreSQL superuser and has only the database
-permissions required by the application.
+The Flask application listens on `0.0.0.0:8080` inside its container, making it accessible through the published host port.
 
-## Fresh Install
+### Worker Service
 
-Module 5 was installed and verified from fresh environments using **both pip and uv**. Each installation method was completed independently to demonstrate that the project can be reproduced successfully using both package-management workflows.
+The `worker` service runs independently of Flask and consumes RabbitMQ messages.
 
-### Fresh Install with pip
+It is responsible for executing incremental scraping operations, inserting newly discovered applicant records, updating ingestion progress, and recomputing analytical summaries.
 
-From the `Module 5` directory, create and activate a fresh virtual environment:
+Separating the worker from the web service prevents lengthy data-processing operations from blocking normal browser requests.
 
-```bash
-python3 -m venv venv
-source venv/bin/activate
-```
+The worker uses explicit message acknowledgments and database transactions to coordinate successful task completion with persistent database changes.
 
-Upgrade pip and install all dependencies declared in `requirements.txt`:
+### PostgreSQL Service
 
-```bash
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
+The `db` service provides relational storage for the application.
 
-Install the Module 5 project in editable mode:
+PostgreSQL stores the applicant dataset, ingestion watermark information, and persisted analytics summaries.
 
-```bash
-pip install -e .
-```
+A named Docker volume preserves the database files across normal container restarts and recreation. This prevents the application from losing its accumulated data whenever the containers are stopped and restarted.
 
-Verify the package installation:
+The Compose configuration also includes database readiness checks so that dependent services can wait for PostgreSQL to become available.
+
+### RabbitMQ Service
+
+The `rabbitmq` service provides asynchronous communication between the Flask web service and the worker.
+
+RabbitMQ receives tasks from the publisher, places them in a queue, and delivers them to the worker for processing.
+
+The application uses a durable direct exchange named `tasks`, a durable queue named `tasks_q`, and the routing key `tasks`.
+
+Messages are published with persistent delivery mode so that queued tasks can survive an ordinary broker restart when RabbitMQ's persistent storage and durability requirements are satisfied.
+
+The RabbitMQ management interface provides visibility into queue activity, message delivery, consumers, and broker status.
+
+## Environment Configuration
+
+The project includes `.env.example` to document the environment configuration used by the application.
+
+A local `.env` file can be created from the template:
 
 ```bash
-pip show jhu-software-concepts-module5
+cp .env.example .env
 ```
 
-The pip fresh-install workflow was successfully completed and verified by importing all ten Module 5 source modules and running the complete test suite.
+Review the template and configure the database and RabbitMQ settings before deployment.
 
-### Fresh Install with uv
+PostgreSQL connection settings include the database name, username, password, host, and port. The application can also use a `DATABASE_URL` connection string.
 
-A separate fresh environment was then created and verified using **uv**:
+RabbitMQ connection settings identify the broker and provide the credentials required by the publisher and consumer.
 
-```bash
-uv venv
-source .venv/bin/activate
-```
+Within Docker Compose, services communicate using their service names on the Compose network rather than relying on `localhost` to reach other containers.
 
-Synchronize the fresh environment with the dependencies declared in `requirements.txt`:
-
-```bash
-uv pip sync requirements.txt
-```
-
-Install the Module 5 project in editable mode:
-
-```bash
-uv pip install -e .
-```
-
-Using `uv pip sync requirements.txt` synchronizes the environment with the project's declared requirements, improving reproducibility by ensuring that the fresh environment contains the required dependency set.
-
-The uv fresh-install workflow was also successfully completed and verified by importing all ten Module 5 source modules and running the complete test suite. The final verification produced **179 passing tests with 100% source-code coverage**.
-
-Therefore, **both the pip and uv fresh-install workflows were independently executed and successfully verified for Module 5**.
+The real `.env` file must not be committed to version control. Credentials should be supplied through environment configuration rather than embedded in application source code.
 
 ## Running the Application
 
-After completing both installation methods for verification, configure the PostgreSQL environment variables and ensure PostgreSQL is running before starting the Flask application from the `Module 5` directory:
+From the `Module 6` directory, build and start the application:
 
 ```bash
-python src/app.py
+docker compose up -d --build
 ```
 
-Open the local Flask address displayed in the terminal in a web browser.
+This command builds the required images and starts the four services in detached mode.
 
-The application displays the GradCafe analysis page containing the analysis
-questions and their current results.
+Verify their status:
+
+```bash
+docker compose ps
+```
+
+The expected services are:
+
+- `web`
+- `worker`
+- `db`
+- `rabbitmq`
+
+The application interfaces are available at:
+
+| Interface | URL |
+|---|---|
+| Flask dashboard | http://localhost:8080 |
+| Analysis page | http://localhost:8080/analysis |
+| RabbitMQ management | http://localhost:15672 |
+
+For a local development deployment configured with RabbitMQ's default credentials, the management username and password are `guest` and `guest`.
+
+### Viewing Container Logs
+
+Docker Compose provides access to individual service logs:
+
+```bash
+docker compose logs --tail=100 web
+docker compose logs --tail=100 worker
+docker compose logs --tail=100 db
+docker compose logs --tail=100 rabbitmq
+```
+
+The worker logs are particularly useful for confirming that tasks were received, processed, and committed successfully.
+
+### Stopping the Application
+
+Stop and remove the running containers with:
+
+```bash
+docker compose down
+```
+
+This preserves the named PostgreSQL volume.
+
+The command `docker compose down -v` additionally removes named volumes and should not be used unless deleting the persistent application data is intentional.
 
 ## Using the Application
 
 ### Pull Data
 
-Click **Pull Data** to check GradCafe for newly available applicant records.
+The **Pull Data** button initiates an asynchronous request to retrieve newly available GradCafe applicant records.
 
-The application checks for new records, processes the retrieved data, and loads
-the processed records into PostgreSQL.
+When the user clicks the button, Flask publishes a `scrape_new_data` task to RabbitMQ.
 
-Only one data pull can run at a time. If a pull is already running, the
-application prevents another pull from starting.
+The HTTP endpoint returns `202 Accepted` after successful task publication, allowing the browser to remain responsive.
+
+The worker subsequently consumes the task and executes the incremental scraping pipeline.
+
+The pipeline checks for newly available records, cleans and normalizes applicant information, and inserts eligible records into PostgreSQL.
+
+An ingestion watermark records the application's progress so that subsequent runs can identify previously processed data.
+
+Duplicate protection prevents the same applicant records from being inserted repeatedly.
+
+If no new records are available, the worker can complete successfully without inserting additional applicants.
 
 ### Update Analysis
 
-Click **Update Analysis** to recalculate the displayed analysis using the
-records currently stored in PostgreSQL.
+The **Update Analysis** button initiates an asynchronous analytics refresh.
 
-If a data pull is currently running, the application prevents an analysis
-update until the pull has completed.
+Flask publishes a `recompute_analytics` task to RabbitMQ and returns `202 Accepted` when the task has been queued.
+
+The worker reads the applicant data stored in PostgreSQL, performs the required calculations, and persists the resulting analytical summary.
+
+The Flask application can then retrieve the updated statistics from PostgreSQL for display on the analysis page.
+
+Separating this calculation from the HTTP request allows the application to process analytical updates without requiring the browser to wait for the database operation to finish.
+
+## RabbitMQ Message Processing
+
+RabbitMQ is the communication mechanism between the web service and the worker.
+
+The publisher creates a task message containing three principal fields:
+
+- `kind` — identifies the requested operation.
+- `ts` — records the task timestamp.
+- `payload` — carries task-specific information.
+
+The supported task kinds are `scrape_new_data` and `recompute_analytics`.
+
+The publisher sends persistent messages through the durable `tasks` exchange to the `tasks_q` queue using the `tasks` routing key.
+
+The worker declares the corresponding RabbitMQ entities and consumes messages using a prefetch count of one.
+
+This configuration limits the number of unacknowledged messages delivered to the worker at a time.
+
+### Transaction Handling and Acknowledgment
+
+The worker processes database modifications inside transactions.
+
+For successful processing, database changes are committed before the worker acknowledges the RabbitMQ message.
+
+This ordering prevents the worker from acknowledging successful completion before its database changes have been persisted.
+
+If processing fails, the worker rolls back the database transaction and rejects the message without automatically requeuing it indefinitely.
+
+These mechanisms support predictable task handling and reduce the risk of inconsistent database state.
 
 ## Data Pipeline
 
-The application's data pipeline consists of three main stages:
+The original GradCafe application includes extraction, cleaning, database loading, and statistical analysis.
 
-1. `scrape.py` retrieves GradCafe applicant records.
-2. `clean.py` cleans and normalizes the collected records.
-3. `load_data.py` loads the processed records into PostgreSQL.
+Module 6 adapts those operations for execution by a dedicated background worker.
 
-The scraping functionality is additionally separated into
-`scrape_records.py` and `scrape_storage.py`.
+### Incremental Scraping
 
-The Flask application queries the PostgreSQL data and displays the analysis
-results.
+The worker's incremental scraper retrieves available GradCafe records and identifies records that have not already been processed.
+
+The application uses ingestion watermark information to track progress between scraping runs.
+
+The pipeline normalizes applicant information before insertion and applies duplicate protection at the database layer.
+
+Incremental processing reduces unnecessary repeated work and helps preserve consistency across repeated task submissions.
+
+### Database Loading
+
+PostgreSQL stores the processed applicant records.
+
+The project includes database initialization and loading functionality for the prepared applicant dataset.
+
+Database operations use parameterized SQL rather than interpolating untrusted values directly into executable SQL statements.
+
+The application maintains applicant data, ingestion watermarks, and persisted analytical results as separate logical responsibilities.
+
+### Analytics
+
+The application performs statistical analysis on the stored graduate admissions records.
+
+The existing GradCafe analysis includes admission-related summaries and descriptive statistics.
+
+Module 6 adds persisted analytical summaries so that recalculated results can be stored and subsequently retrieved by the web service.
+
+The dashboard continues to present the application's analysis questions and results.
 
 ## SQL Injection Defenses
 
-Module 5 uses psycopg SQL composition and parameterized values to defend
-against SQL injection.
+The application retains the secure SQL practices developed in Module 5.
 
-SQL statements are constructed using `psycopg.sql.SQL`. Dynamic table and
-column identifiers are composed using `psycopg.sql.Identifier`, while values
-are supplied separately using `%s` placeholders and query parameters rather
-than being inserted directly into SQL strings.
+Database statements use psycopg parameter binding to separate SQL commands from user-controlled values.
 
-SQL statement construction is kept separate from execution and parameter
-binding. Queries are therefore executed using a composed statement and a
-separate parameter collection rather than SQL strings constructed with
-user-supplied values.
+Where SQL identifiers must be composed dynamically, the application uses psycopg's SQL composition utilities rather than directly concatenating untrusted text into statements.
 
-The application also enforces bounded query limits. SELECT queries include an
-inherent parameterized `LIMIT`, and application logic constrains requested
-limits to the permitted range of 1 through 100.
+Parameterized statements reduce the risk that input values will be interpreted as executable SQL.
 
-## Database Security
+The Module 6 worker also performs its database modifications within explicit transactions, providing additional control over the consistency of inserted records and updated summaries.
 
-Module 5 uses a dedicated PostgreSQL application role named `gradcafe_app`
-rather than running the application through a PostgreSQL superuser.
+## Container Security
 
-The role is configured without superuser, database-creation, or role-creation
-privileges. It has only the permissions required for the application's normal
-database operations:
+The web and worker Docker images are configured to execute application processes as non-root users.
 
-- `CONNECT` on the `gradcafe` database.
-- `USAGE` on the `public` schema.
-- `SELECT` and `INSERT` on the `applicants` table.
-- `USAGE` and `SELECT` on the `applicants_p_id_seq` sequence.
+Running application processes without root privileges reduces the permissions available to those processes inside their containers.
 
-Schema creation is not performed by the application's normal data-loading
-path, so the application role does not require schema-management privileges
-such as `DROP`, `ALTER`, or object ownership.
+The services install their required Python dependencies from their respective pinned requirements files.
 
-Database credentials are provided through `DB_HOST`, `DB_PORT`, `DB_NAME`,
-`DB_USER`, and `DB_PASSWORD` rather than being hard-coded in source code.
+The worker receives application data through a read-only mount, preventing the worker from modifying the mounted source dataset.
+
+Docker Compose provides an internal network for service-to-service communication and defines service dependencies and health checks.
+
+The application also keeps runtime configuration separate from source code through environment variables.
+
+## Docker Hub Publication
+
+The Module 6 web and worker images have been published to Docker Hub.
+
+Both repositories are public and use the `v1` tag.
+
+### Web Image
+
+Repository:
+
+https://hub.docker.com/r/rachmends/module_6-web/tags
+
+Pull command:
+
+```bash
+docker pull rachmends/module_6-web:v1
+```
+
+### Worker Image
+
+Repository:
+
+https://hub.docker.com/r/rachmends/module_6-worker/tags
+
+Pull command:
+
+```bash
+docker pull rachmends/module_6-worker:v1
+```
+
+The published images provide reusable versions of the two application services.
+
+They are intended to operate with the PostgreSQL and RabbitMQ services defined in Docker Compose.
 
 ## Packaging
 
-The project includes `setup.py` to make Module 5 installable as
-`jhu-software-concepts-module5`.
+The project includes `setup.py` to support installation of the Python application in editable mode.
 
-The project can be installed in editable mode using pip:
+Editable installation allows the source code to be imported during local development and automated testing without rebuilding the package after every source change.
 
-```bash
-pip install -e .
-```
-
-or uv:
+From the `Module 6` directory:
 
 ```bash
-uv pip install -e .
+python -m pip install -e .
 ```
 
-Packaging provides a consistent installation mechanism for local development,
-testing, and continuous integration. Editable installation also reduces
-path-related environment problems while allowing source changes to remain
-immediately available during development.
+The Docker deployment uses service-specific Dockerfiles and requirements files, while editable installation supports the local development and testing workflow.
 
 ## Verify the Installation
 
-Run the complete test suite with:
+### Docker Verification
+
+Start the complete application:
 
 ```bash
-pytest
+docker compose up -d --build
 ```
 
-The verified Module 5 test suite contains 179 tests and achieves 100% coverage
-across the ten source modules.
+Confirm service status:
+
+```bash
+docker compose ps
+```
+
+Verify that the Flask application responds:
+
+```bash
+curl -I http://localhost:8080/
+curl -I http://localhost:8080/analysis
+```
+
+Submit the two asynchronous tasks:
+
+```bash
+curl -i -X POST http://localhost:8080/pull-data
+curl -i -X POST http://localhost:8080/update-analysis
+```
+
+Successful task publication should return HTTP `202 Accepted`.
+
+Inspect the worker logs:
+
+```bash
+docker compose logs --tail=100 worker
+```
+
+The worker output can be used to confirm that the requested operations were processed.
+
+The RabbitMQ management interface provides additional evidence that the broker is running and that the worker is connected.
+
+### Automated Tests
+
+Run the complete Module 6 test suite:
+
+```bash
+PYTHONPATH=src python -m pytest --cov=src --cov-report=term-missing --cov-fail-under=100
+```
+
+The required coverage threshold is **100%**.
+
+The test suite covers application routes, RabbitMQ publishing, worker consumption, transaction handling, incremental scraping, database operations, and integration behavior.
 
 ## Pylint
 
-Pylint is used to check all Python files inside the `src` directory.
+Pylint checks the Python source code for code-quality issues and violations of configured lint rules.
 
 Run:
 
 ```bash
-pylint src
+PYTHONPATH=src python -m pylint --fail-under=10 --persistent=n src
 ```
 
-The completed Module 5 source code achieves a Pylint score of **10.00/10**
-with no warnings or errors.
+The required final score is **10.00/10**.
 
-## Dependency Graph
-
-The project's Python module dependencies were analyzed using pydeps and
-Graphviz.
-
-The generated dependency graph is saved in the Module 5 directory as:
-
-```text
-dependency.svg
-```
-
-The graph represents the project's internal source modules together with its
-major external dependency families, including Flask, SQLAlchemy, psycopg,
-Beautiful Soup, and urllib3. Low-level SQLAlchemy and psycopg implementation
-modules were filtered from the final visualization to preserve meaningful
-dependency detail while keeping the graph readable.
-
-The required 5–7 sentence analysis of the dependency graph is included in the
-final Module 5 PDF report.
-
-## Security Analysis
-
-Step 6 uses Snyk to scan the application's dependencies for known security
-vulnerabilities.
-
-The dependency scan is run with:
-
-```bash
-snyk test
-```
-
-The required Snyk scan evidence will be saved as:
-
-```text
-snyk-analysis.png
-```
-
-The final documentation will describe any vulnerabilities identified by the
-scan and any remediation performed.
+The GitHub Actions workflow enforces this threshold so that a lint regression causes the corresponding CI job to fail.
 
 ## Continuous Integration
 
-Step 7 uses GitHub Actions to automate the required Module 5 software
-assurance checks on pushes and pull requests.
+The repository uses GitHub Actions to execute automated quality checks.
 
-The workflow is located at:
+The workflow is located at the repository root:
 
 ```text
 .github/workflows/ci.yml
 ```
 
-The required workflow is configured to perform four separate checks:
+The Module 6 Pylint job installs the project dependencies and runs Pylint against the Module 6 source directory.
 
-- Run Pylint and fail if the score is below 10.00/10.
-- Generate and validate `dependency.svg` using pydeps and Graphviz.
-- Run the Snyk dependency scan.
-- Run the pytest test suite and fail if any tests fail.
+The Module 6 Pytest job runs the complete test suite and enforces the 100% coverage requirement.
 
-A screenshot of the successful GitHub Actions workflow run will be included
-in the final Module 5 PDF report after the workflow has been executed
-successfully.
+These checks are configured to run on repository pushes and pull requests.
 
-## Documentation
+The existing dependency-graph and Snyk jobs remain associated with the earlier Module 5 implementation.
 
-The final Module 5 documentation covers:
+Successful GitHub Actions execution provides additional verification that the project can be installed and tested in a clean environment.
 
-- Fresh installation and execution using pip and uv.
-- Why packaging and `setup.py` are used.
-- Dependency graph analysis.
-- SQL injection defenses.
-- Least-privilege PostgreSQL configuration.
-- SQL LIMIT enforcement and safe statement composition/parameterization.
-- Snyk dependency-security analysis.
-- GitHub Actions continuous integration.
+## Sphinx Documentation
 
-The primary Module 5 deliverables include:
+The project uses Sphinx to generate HTML documentation from reStructuredText files and Python docstrings.
+
+The documentation source files are located in:
 
 ```text
-dependency.svg
-setup.py
-requirements.txt
-.env.example
-snyk-analysis.png
-.github/workflows/ci.yml
-Module 5 Report.pdf
+docs/source/
 ```
+
+The documentation includes:
+
+- Application overview and setup instructions.
+- Four-service Docker Compose architecture.
+- RabbitMQ publishing and consumption workflow.
+- PostgreSQL persistence and incremental processing.
+- Python API reference.
+- Automated testing and deployment verification.
+
+Build the documentation from the Module 6 directory:
+
+```bash
+python -m sphinx -b html -W --keep-going docs/source docs/build/html
+```
+
+The `-W` option treats documentation warnings as errors, allowing documentation problems to be identified before submission.
+
+The generated documentation can be opened at:
+
+```text
+docs/build/html/index.html
+```
+
+## Final Deliverables
+
+The Module 6 submission consists of the completed project, its repository, and the required documentation.
+
+The deliverables include:
+
+- A ZIP archive containing the Module 6 project.
+- A link to the private GitHub repository containing the committed Module 6 implementation.
+- The Docker Compose configuration and service Dockerfiles.
+- The web publisher, RabbitMQ worker, incremental scraper, and PostgreSQL initialization code.
+- Updated README and Sphinx documentation.
+- GitHub Actions configuration enforcing Pylint 10/10 and Pytest 100% coverage.
+- Public Docker Hub links for the web and worker images.
+- A PDF report describing the architecture, message flow, database initialization, worker behavior, and verification procedures.
+- Screenshots showing the running Flask website and RabbitMQ management interface.
+
+The final archive should be created after the application, documentation, and automated checks have been verified.

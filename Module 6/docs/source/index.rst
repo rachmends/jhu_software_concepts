@@ -6,8 +6,6 @@
 Welcome to Module 4's documentation!
 ====================================
 
-.. automodule:: add
-   :members:
 
 Grad Café Application
 ---------------------

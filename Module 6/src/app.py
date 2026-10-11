@@ -6,10 +6,13 @@ import threading
 import sys
 
 import psycopg
+import pika
 
 from flask import Flask, render_template, request, jsonify
-from sqlalchemy import select, func, or_
+from sqlalchemy import select, func, or_, text
 from sqlalchemy.sql.functions import count
+
+from web.publisher import publish_task
 
 from models import Applicant, SESSION_LOCAL
 from orm_queries import (
@@ -135,6 +138,24 @@ def get_analysis_results():
         }
 
         results.update(overall_averages(session))
+
+        # Use the worker's persisted analytics when the snapshot is fresh.
+        summary = session.execute(
+            text("""
+                SELECT average_gpa, average_gre
+                FROM analytics_summary
+                WHERE id = 1
+                  AND updated_at >= COALESCE(
+                      (SELECT MAX(last_processed_at)
+                       FROM ingestion_watermarks),
+                      '-infinity'::timestamptz
+                  )
+            """)
+        ).first()
+
+        if summary is not None:
+            results["q3_gpa"] = summary[0]
+            results["q3_gre"] = summary[1]
 
         results["q4"] = american_fall_2026_average_gpa(session)
         results["q5"] = fall_2025_acceptance_percentage(session)
@@ -324,36 +345,32 @@ def pull_data():
     Returns:
         Response: JSON response with HTTP 202 when the pull starts, or HTTP
         409 when another pull is already running.
+        
+    Utilizes RabbitMQ
     """
-
-    with NonBlockingLock(pull_lock) as acquired:
-        if not acquired:
-            pull_status["message"] = (
-                "A data pull is already running. "
-                "Please wait for it to finish."
-            )
-
-            return jsonify({
-                "ok": False,
-                "busy": True
-            }), 409
-
-        pull_status["running"] = True
-    pull_status["message"] = (
-        "Starting GradCafe data pull..."
-    )
-
-    thread = threading.Thread(
-        target=run_data_pull,
-        daemon=True,
-    )
-
-    thread.start()
+    try:
+        publish_task(
+            kind="scrape_new_data",
+            payload={},
+        )
+    except (
+        OSError,
+        RuntimeError,
+        ValueError,
+        psycopg.Error,
+        pika.exceptions.AMQPError,
+    ) as error:
+        print(f"RabbitMQ publishing error: {error}")
+        return jsonify({
+            "ok": False,
+            "message": "Unable to queue the data pull.",
+        }), 503
 
     return jsonify({
         "ok": True,
-        "busy": False
+        "message": "GradCafe data pull queued successfully.",
     }), 202
+
 
 def update_analysis():
     """
@@ -367,25 +384,32 @@ def update_analysis():
     Returns:
         Response: JSON response with HTTP 200 when an update is available, or
         HTTP 409 while a data pull is in progress.
+        
+    Utilizes RabbitMQ
     """
-
-
-    if pull_status["running"]:
-        pull_status["message"] = (
-            "New GradCafe data is currently being retrieved. "
-            "The analysis below reflects the data currently "
-            "available in PostgreSQL."
+    try:
+        publish_task(
+            kind="recompute_analytics",
+            payload={},
         )
-
+    except (
+        OSError,
+        RuntimeError,
+        ValueError,
+        psycopg.Error,
+        pika.exceptions.AMQPError,
+    ) as error:
+        print(f"RabbitMQ publishing error: {error}")
         return jsonify({
             "ok": False,
-            "busy": True
-        }), 409
+            "message": "Unable to queue the analysis update.",
+        }), 503
 
     return jsonify({
         "ok": True,
-        "busy": False
-    }), 200
+        "message": "Analysis update queued successfully.",
+    }), 202
+
 
 def create_app(test_config=None):
     """
@@ -402,7 +426,11 @@ def create_app(test_config=None):
     Returns:
         Flask: Configured Flask application.
     """
-    flask_app = Flask(__name__)
+    flask_app = Flask(
+        __name__,
+        template_folder="web/app/templates",
+        static_folder="web/app/static",
+    )
 
     if test_config:
         flask_app.config.update(test_config)

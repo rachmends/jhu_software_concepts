@@ -7,3 +7,4 @@ pytest
 pytest-cov
 pylint
 pydeps
+pika>=1.3,<2

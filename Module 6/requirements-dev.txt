@@ -1,0 +1,8 @@
+-r src/web/requirements.txt
+pytest==9.1.1
+pytest-cov==7.1.0
+pylint==4.1.2
+pydeps==3.0.9
+
+sphinx==9.0.4
+sphinx-rtd-theme==3.1.0

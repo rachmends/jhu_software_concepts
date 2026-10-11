@@ -1,4 +1,4 @@
-name: Module 5 CI
+name: Module 6 CI
 
 on:
   push:
@@ -19,15 +19,16 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        working-directory: "Module 5"
+        working-directory: "Module 6"
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -r requirements-dev.txt
           pip install -e .
 
       - name: Run Pylint
-        working-directory: "Module 5"
-        run: pylint --fail-under=10 src
+        working-directory: "Module 6"
+        run: PYTHONPATH=src pylint --fail-under=10 --persistent=n src
 
 
   dependency-graph:
@@ -108,12 +109,13 @@ jobs:
           python-version: "3.11"
 
       - name: Install dependencies
-        working-directory: "Module 5"
+        working-directory: "Module 6"
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -r requirements-dev.txt
           pip install -e .
 
       - name: Run tests with 100% coverage requirement
-        working-directory: "Module 5"
-        run: pytest --cov=src --cov-report=term-missing --cov-fail-under=100
+        working-directory: "Module 6"
+        run: PYTHONPATH=src pytest --cov=src --cov-report=term-missing --cov-fail-under=100

@@ -142,19 +142,21 @@ def test_end_to_end_pull_update_and_analysis(
 ):
     cursor = FakeCursor()
 
-    FakeThread.started = 0
+    published_tasks = []
 
     monkeypatch.setattr(
-        app_module.threading,
-        "Thread",
-        FakeThread,
+        app_module,
+        "publish_task",
+        lambda **kwargs: published_tasks.append(kwargs),
     )
 
     pull_response = client.post("/pull-data")
 
     assert pull_response.status_code == 202
     assert pull_response.get_json()["ok"] is True
-    assert FakeThread.started == 1
+    assert published_tasks == [
+        {"kind": "scrape_new_data", "payload": {}}
+    ]
 
     for applicant in fake_scraper_rows:
         insert_applicant(cursor, applicant)
@@ -168,11 +170,12 @@ def test_end_to_end_pull_update_and_analysis(
 
     update_response = client.post("/update-analysis")
 
-    assert update_response.status_code == 200
-    assert update_response.get_json() == {
-        "ok": True,
-        "busy": False,
-    }
+    assert update_response.status_code == 202
+    assert update_response.get_json()["ok"] is True
+    assert published_tasks == [
+        {"kind": "scrape_new_data", "payload": {}},
+        {"kind": "recompute_analytics", "payload": {}},
+    ]
 
     fake_analysis = {
         "q1": 2,

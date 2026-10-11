@@ -28,6 +28,12 @@ class FakeSession:
         self.scalar_count += 1
         return next(self.values)
 
+    def execute(self, *args, **kwargs):
+        """Return a configurable persisted analytics snapshot."""
+        return SimpleNamespace(
+            first=lambda: getattr(self, "analytics_summary", None)
+        )
+
 
 class SessionContext:
     """Context manager returned by SESSION_LOCAL()."""
@@ -121,6 +127,25 @@ def test_get_analysis_results_with_data(monkeypatch):
     assert results["q10"] == 20.0
     assert results["q11"] == 3.87
 
+    assert fake_session.scalar_count == 17
+
+
+@pytest.mark.analysis
+def test_get_analysis_results_uses_fresh_summary(monkeypatch):
+    """Use persisted averages when the worker snapshot is fresh."""
+    fake_session, session_context = make_fake_session(
+        [0] * 17
+    )
+    fake_session.analytics_summary = (3.85, 166.25)
+
+    monkeypatch.setattr(
+        app_module, "SESSION_LOCAL", lambda: session_context
+    )
+
+    results = app_module.get_analysis_results()
+
+    assert results["q3_gpa"] == 3.85
+    assert results["q3_gre"] == 166.25
     assert fake_session.scalar_count == 17
 
 

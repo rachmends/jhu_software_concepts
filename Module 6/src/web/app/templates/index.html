@@ -21,6 +21,9 @@
     </header>
 
     <main>
+        <p id="task-feedback" class="analysis-message"
+           role="status" aria-live="polite"></p>
+
         <div class="analysis-toolbar">
 
             <div>
@@ -248,6 +251,49 @@
         }, 5000);
     </script>
     {% endif %}
+
+
+<script>
+document.querySelectorAll(
+    'form[action$="/pull-data"], form[action$="/update-analysis"]'
+).forEach((form) => {
+    form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        const button = form.querySelector('button[type="submit"]');
+        const feedback = document.getElementById("task-feedback");
+        const originalText = button.textContent;
+
+        button.disabled = true;
+        button.textContent = "Queuing task...";
+
+        try {
+            const response = await fetch(form.action, {
+                method: "POST",
+                headers: { "Accept": "application/json" }
+            });
+
+            const result = await response.json();
+
+            feedback.textContent = result.message ||
+                (response.ok ? "Task queued." : "Request failed.");
+
+            if (!response.ok) {
+                feedback.setAttribute("role", "alert");
+            } else {
+                feedback.setAttribute("role", "status");
+            }
+        } catch (error) {
+            feedback.textContent =
+                "Unable to contact the application. Please try again.";
+            feedback.setAttribute("role", "alert");
+        } finally {
+            button.disabled = false;
+            button.textContent = originalText;
+        }
+    });
+});
+</script>
 
 </body>
 </html>
